@@ -48,7 +48,7 @@ const Timer: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [totalTimeToday, setTotalTimeToday] = useState(0);
   
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const originalTime = useRef(timeLeft);
 
   useEffect(() => {
@@ -81,7 +81,8 @@ const Timer: React.FC = () => {
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    const pad2 = (n: number) => (n < 10 ? `0${n}` : `${n}`);
+    return `${pad2(mins)}:${pad2(secs)}`;
   };
 
   // Calcular porcentagem do progresso

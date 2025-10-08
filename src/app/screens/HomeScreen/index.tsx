@@ -14,7 +14,7 @@ import {
 import type { MenuProps } from 'antd';
 import { Breadcrumb, Layout, Menu, theme, Button, Card, Row, Col, Statistic, Typography, Space } from 'antd';
 import CalendarComponent from '../../components/Calendar';
-import KanbanBoard from '../../components/Kanbam';
+import KanbanBoard from '../../components/KanBam';
 import Timer from '../../components/Timer';
 
 const { Header, Content, Footer, Sider } = Layout;
@@ -26,6 +26,8 @@ interface HomeScreenProps {
   user?: { name: string; email: string; id: string };
   onLogout?: () => void;
 }
+
+
 
 function getItem(
   label: React.ReactNode,
@@ -46,11 +48,12 @@ const items: MenuItem[] = [
   getItem('Minhas Tarefas', '2', <ClockCircleOutlined />),
   getItem('Agenda', '3', <CalendarOutlined />),
   getItem('Timer', '4', <ClockCircleOutlined />),
+  getItem('Grupos', '5', <TeamOutlined />),
   getItem('Perfil', 'sub1', <UserOutlined />, [
-    getItem('Meus Dados', '5'),
-    getItem('Preferências', '6'),
+    getItem('Meus Dados', '6'),
+    getItem('Preferências', '7'),
   ]),
-  getItem('Configurações', '7', <SettingOutlined />),
+  getItem('Configurações', '8', <SettingOutlined />),
 ];
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ user, onLogout }) => {
@@ -83,14 +86,18 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, onLogout }) => {
         console.log('Navegando para Timer');
         break;
       case '5':
+        setCurrentView('grupos');
+        console.log('Navegando para Grupos');
+        break;
+      case '6':
         setCurrentView('profile');
         console.log('Navegando para Meus Dados');
         break;
-      case '6':
+      case '7':
         setCurrentView('preferences');
         console.log('Navegando para Preferências');
         break;
-      case '7':
+      case '8':
         setCurrentView('settings');
         console.log('Navegando para Configurações');
         break;
@@ -153,68 +160,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, onLogout }) => {
 
             <div
               style={{
-                padding: 24,
-                minHeight: 360,
+                padding: 0,
+                minHeight: 'calc(100vh - 300px)',
                 background: colorBgContainer,
                 borderRadius: borderRadiusLG,
               }}
             >
-              <Row gutter={[16, 16]}>
-                <Col xs={24} lg={16}>
-                  <Card title="Tarefas Recentes" style={{ height: '100%' }}>
-                    <Space direction="vertical" style={{ width: '100%' }}>
-                      <div style={{ padding: '12px', border: '1px solid #f0f0f0', borderRadius: '6px' }}>
-                        <Text strong>Finalizar relatório mensal</Text>
-                        <br />
-                        <Text type="secondary">Prazo: Hoje às 18:00</Text>
-                      </div>
-                      <div style={{ padding: '12px', border: '1px solid #f0f0f0', borderRadius: '6px' }}>
-                        <Text strong>Revisar código do projeto</Text>
-                        <br />
-                        <Text type="secondary">Prazo: Amanhã</Text>
-                      </div>
-                      <div style={{ padding: '12px', border: '1px solid #f0f0f0', borderRadius: '6px' }}>
-                        <Text strong>Reunião com cliente</Text>
-                        <br />
-                        <Text type="secondary">Prazo: 15:30</Text>
-                      </div>
-                    </Space>
-                  </Card>
-                </Col>
-                
-                <Col xs={24} lg={8}>
-                  <Card title="Ações Rápidas" style={{ height: '100%' }}>
-                    <Space direction="vertical" style={{ width: '100%' }}>
-                      <Button 
-                        type="primary" 
-                        icon={<PlusOutlined />} 
-                        block
-                        size="large"
-                        onClick={() => handleMenuClick({ key: '5' } as any)}
-                      >
-                        Nova Tarefa
-                      </Button>
-                      <Button 
-                        icon={<CheckCircleOutlined />} 
-                        block
-                        onClick={() => handleMenuClick({ key: '2' } as any)}
-                      >
-                        Ver Todas as Tarefas
-                      </Button>
-                      <Button 
-                        icon={<SettingOutlined />} 
-                        block
-                        onClick={() => handleMenuClick({ key: '8' } as any)}
-                      >
-                        Configurações
-                      </Button>
-                    </Space>
-                  </Card>
-                </Col>
-              </Row>
-            </div>
-            
-            <div style={{ marginTop: '24px' }}>
               <KanbanBoard />
             </div>
           </>
@@ -247,6 +198,17 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, onLogout }) => {
 
       case 'timer':
         return <Timer />;
+
+      case 'grupos':
+        return (
+          <Card title="👥 Grupos" style={{ minHeight: '400px' }}>
+            <div style={{ textAlign: 'center', padding: '40px' }}>
+              <TeamOutlined style={{ fontSize: '48px', color: '#52c41a', marginBottom: '16px' }} />
+              <Title level={3}>Gerenciamento de Grupos</Title>
+              <Text type="secondary">Aqui você pode gerenciar seus grupos de trabalho</Text>
+            </div>
+          </Card>
+        );
 
       case 'profile':
         return (
@@ -295,6 +257,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ user, onLogout }) => {
       case 'tasks': return 'Minhas Tarefas';
       case 'calendar': return 'Agenda';
       case 'timer': return 'Timer';
+      case 'grupos': return 'Grupos';
       case 'profile': return 'Meus Dados';
       case 'preferences': return 'Preferências';
       case 'settings': return 'Configurações';

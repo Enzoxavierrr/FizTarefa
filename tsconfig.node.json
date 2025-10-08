@@ -9,6 +9,6 @@
     "allowSyntheticDefaultImports": true,
     "strict": true
   },
-  "include": ["**/*.ts", "**/*.tsx"]
+  "include": ["**/*.ts", "**/*.tsx", "src/app/components/ParticleRing/index.jsx", "src/app/components/Kanbam/index.tsx"]
 
 }

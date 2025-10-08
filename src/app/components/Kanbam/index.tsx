@@ -1,381 +1,549 @@
-import React, { useState } from 'react';
-import { Card, Tag, Avatar, Button, Modal, Form, Input, Select, DatePicker, Space, Tooltip, Typography } from 'antd';
-import { 
-  PlusOutlined, 
-  UserOutlined, 
-  CalendarOutlined, 
-  FlagOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  ClockCircleOutlined
-} from '@ant-design/icons';
-import type { Dayjs } from 'dayjs';
-import dayjs from 'dayjs';
+import React, {
+  Dispatch,
+  SetStateAction,
+  useState,
+  DragEvent,
+  FormEvent,
+} from "react";
+import { FiPlus, FiTrash } from "react-icons/fi";
+import { motion } from "framer-motion";
+import { FaFire } from "react-icons/fa";
+import { Card, Typography, Button, Space } from 'antd';
+import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
-const { TextArea } = Input;
 
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-  assignee: string;
-  priority: 'baixa' | 'media' | 'alta' | 'urgente';
-  dueDate: string;
-  tags: string[];
-  status: 'todo' | 'doing' | 'review' | 'done';
-}
-
-interface Column {
-  id: string;
-  title: string;
-  status: Task['status'];
-  color: string;
-  icon: string;
-}
-
-const priorityColors = {
-  baixa: '#52c41a',
-  media: '#faad14', 
-  alta: '#fa8c16',
-  urgente: '#f5222d'
+// Cores do projeto baseadas no Ant Design
+const projectColors = {
+  primary: '#1890ff',
+  success: '#52c41a',
+  warning: '#faad14',
+  error: '#f5222d',
+  purple: '#722ed1',
+  cyan: '#13c2c2',
+  background: '#f5f5f5',
+  cardBg: '#ffffff',
+  border: '#d9d9d9',
+  text: '#262626',
+  textSecondary: '#8c8c8c'
 };
 
-const columns: Column[] = [
-  { id: '1', title: 'A Fazer', status: 'todo', color: '#f0f0f0', icon: '📋' },
-  { id: '2', title: 'Em Andamento', status: 'doing', color: '#e6f7ff', icon: '⚡' },
-  { id: '3', title: 'Em Revisão', status: 'review', color: '#fff7e6', icon: '👀' },
-  { id: '4', title: 'Concluído', status: 'done', color: '#f6ffed', icon: '✅' }
-];
-
-const initialTasks: Task[] = [
-  {
-    id: '1',
-    title: 'Implementar Login',
-    description: 'Criar tela de login com validação de usuário e senha',
-    assignee: 'Enzo Xavier',
-    priority: 'alta',
-    dueDate: '2025-10-05',
-    tags: ['Frontend', 'React'],
-    status: 'todo'
+const columnStyles = {
+  backlog: {
+    backgroundColor: '#f9f9f9',
+    borderColor: projectColors.textSecondary,
+    headerColor: projectColors.textSecondary
   },
-  {
-    id: '2', 
-    title: 'Configurar API',
-    description: 'Setup inicial da API REST com Node.js',
-    assignee: 'Enzo Xavier',
-    priority: 'urgente',
-    dueDate: '2025-10-02',
-    tags: ['Backend', 'Node.js'],
-    status: 'doing'
+  todo: {
+    backgroundColor: '#fff7e6',
+    borderColor: projectColors.warning,
+    headerColor: projectColors.warning
   },
-  {
-    id: '3',
-    title: 'Design System',
-    description: 'Criar componentes reutilizáveis para o sistema',
-    assignee: 'Enzo Xavier',
-    priority: 'media',
-    dueDate: '2025-10-10',
-    tags: ['Design', 'UI/UX'],
-    status: 'review'
+  doing: {
+    backgroundColor: '#e6f7ff',
+    borderColor: projectColors.primary,
+    headerColor: projectColors.primary
   },
-  {
-    id: '4',
-    title: 'Documentação',
-    description: 'Escrever documentação técnica do projeto',
-    assignee: 'Enzo Xavier',
-    priority: 'baixa',
-    dueDate: '2025-09-28',
-    tags: ['Docs'],
-    status: 'done'
+  done: {
+    backgroundColor: '#f6ffed',
+    borderColor: projectColors.success,
+    headerColor: projectColors.success
   }
-];
+};
 
-const KanbanBoard: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [form] = Form.useForm();
+export const ProjectKanban = () => {
+  return (
+    <div style={{
+      height: 'calc(100vh - 300px)',
+      width: '100%',
+      backgroundColor: projectColors.background,
+      padding: '20px',
+      borderRadius: '8px'
+    }}>
+      <Board />
+    </div>
+  );
+};
 
-  const handleDragStart = (e: React.DragEvent, taskId: string) => {
-    e.dataTransfer.setData('text/plain', taskId);
+const Board = () => {
+  const [cards, setCards] = useState(DEFAULT_CARDS);
+
+  return (
+    <div style={{
+      display: 'flex',
+      height: '100%',
+      width: '100%',
+      gap: '16px',
+      overflowX: 'auto',
+      padding: '0 8px'
+    }}>
+      <Column
+        title="📋 Backlog"
+        column="backlog"
+        cards={cards}
+        setCards={setCards}
+      />
+      <Column
+        title="📝 A Fazer"
+        column="todo"
+        cards={cards}
+        setCards={setCards}
+      />
+      <Column
+        title="⚡ Em Progresso"
+        column="doing"
+        cards={cards}
+        setCards={setCards}
+      />
+      <Column
+        title="✅ Concluído"
+        column="done"
+        cards={cards}
+        setCards={setCards}
+      />
+      <BurnBarrel setCards={setCards} />
+    </div>
+  );
+};
+
+type ColumnProps = {
+  title: string;
+  cards: CardType[];
+  column: ColumnType;
+  setCards: Dispatch<SetStateAction<CardType[]>>;
+};
+
+const Column = ({
+  title,
+  cards,
+  column,
+  setCards,
+}: ColumnProps) => {
+  const [active, setActive] = useState(false);
+  const columnStyle = columnStyles[column];
+
+  const handleDragStart = (e: DragEvent, card: CardType) => {
+    e.dataTransfer.setData("cardId", card.id);
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
+  const handleDragEnd = (e: DragEvent) => {
+    const cardId = e.dataTransfer.getData("cardId");
+
+    setActive(false);
+    clearHighlights();
+
+    const indicators = getIndicators();
+    const { element } = getNearestIndicator(e, indicators);
+
+    const before = element.dataset.before || "-1";
+
+    if (before !== cardId) {
+      let copy = [...cards];
+
+      let cardToTransfer = copy.find((c) => c.id === cardId);
+      if (!cardToTransfer) return;
+      cardToTransfer = { ...cardToTransfer, column };
+
+      copy = copy.filter((c) => c.id !== cardId);
+
+      const moveToBack = before === "-1";
+
+      if (moveToBack) {
+        copy.push(cardToTransfer);
+      } else {
+        const insertAtIndex = copy.findIndex((el) => el.id === before);
+        if (insertAtIndex === undefined) return;
+
+        copy.splice(insertAtIndex, 0, cardToTransfer);
+      }
+
+      setCards(copy);
+    }
   };
 
-  const handleDrop = (e: React.DragEvent, newStatus: Task['status']) => {
+  const handleDragOver = (e: DragEvent) => {
     e.preventDefault();
-    const taskId = e.dataTransfer.getData('text/plain');
-    
-    setTasks(prevTasks => 
-      prevTasks.map(task => 
-        task.id === taskId ? { ...task, status: newStatus } : task
-      )
+    highlightIndicator(e);
+    setActive(true);
+  };
+
+  const clearHighlights = (els?: HTMLElement[]) => {
+    const indicators = els || getIndicators();
+    indicators.forEach((i) => {
+      i.style.opacity = "0";
+    });
+  };
+
+  const highlightIndicator = (e: DragEvent) => {
+    const indicators = getIndicators();
+    clearHighlights(indicators);
+    const el = getNearestIndicator(e, indicators);
+    el.element.style.opacity = "1";
+  };
+
+  const getNearestIndicator = (e: DragEvent, indicators: HTMLElement[]) => {
+    const DISTANCE_OFFSET = 50;
+
+    const el = indicators.reduce(
+      (closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = e.clientY - (box.top + DISTANCE_OFFSET);
+
+        if (offset < 0 && offset > closest.offset) {
+          return { offset: offset, element: child };
+        } else {
+          return closest;
+        }
+      },
+      {
+        offset: Number.NEGATIVE_INFINITY,
+        element: indicators[indicators.length - 1],
+      }
+    );
+
+    return el;
+  };
+
+  const getIndicators = () => {
+    return Array.from(
+      document.querySelectorAll(
+        `[data-column="${column}"]`
+      ) as unknown as HTMLElement[]
     );
   };
 
-  const openModal = (task?: Task) => {
-    if (task) {
-      setEditingTask(task);
-      form.setFieldsValue({
-        ...task,
-        dueDate: dayjs(task.dueDate)
-      });
-    } else {
-      setEditingTask(null);
-      form.resetFields();
-    }
-    setIsModalVisible(true);
+  const handleDragLeave = () => {
+    clearHighlights();
+    setActive(false);
   };
 
-  const handleSave = (values: any) => {
-    const taskData = {
-      ...values,
-      dueDate: values.dueDate.format('YYYY-MM-DD'),
-      tags: values.tags || []
-    };
+  const filteredCards = cards.filter((c) => c.column === column);
 
-    if (editingTask) {
-      setTasks(prevTasks =>
-        prevTasks.map(task =>
-          task.id === editingTask.id ? { ...task, ...taskData } : task
-        )
-      );
-    } else {
-      const newTask: Task = {
-        id: Date.now().toString(),
-        ...taskData,
-        status: 'todo'
-      };
-      setTasks(prevTasks => [...prevTasks, newTask]);
-    }
-
-    setIsModalVisible(false);
-    form.resetFields();
-  };
-
-  const deleteTask = (taskId: string) => {
-    setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
-  };
-
-  const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
-    const isOverdue = dayjs(task.dueDate).isBefore(dayjs(), 'day');
-    
-    return (
+  return (
+    <div style={{
+      width: '280px',
+      flexShrink: 0,
+      height: '100%'
+    }}>
       <Card
         size="small"
-        draggable
-        onDragStart={(e) => handleDragStart(e, task.id)}
         style={{
-          marginBottom: 8,
-          cursor: 'move',
-          border: `2px solid ${priorityColors[task.priority]}`,
-          borderRadius: 8
+          height: '100%',
+          backgroundColor: columnStyle.backgroundColor,
+          border: `2px solid ${active ? columnStyle.borderColor : projectColors.border}`,
+          borderRadius: '12px',
+          transition: 'all 0.3s ease'
         }}
-        bodyStyle={{ padding: 12 }}
-        actions={[
-          <Tooltip title="Editar">
-            <EditOutlined onClick={() => openModal(task)} />
-          </Tooltip>,
-          <Tooltip title="Excluir">
-            <DeleteOutlined onClick={() => deleteTask(task.id)} />
-          </Tooltip>
-        ]}
-      >
-        <div style={{ marginBottom: 8 }}>
-          <Text strong style={{ fontSize: 14 }}>{task.title}</Text>
-          <Tag 
-            color={priorityColors[task.priority]} 
-            style={{ float: 'right', margin: 0, fontSize: '11px' }}
-          >
-            <FlagOutlined /> {task.priority.toUpperCase()}
-          </Tag>
-        </div>
-        
-        <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
-          {task.description}
-        </Text>
-        
-        <div style={{ marginBottom: 8 }}>
-          {task.tags.map(tag => (
-            <Tag key={tag} style={{ marginBottom: 4, fontSize: '11px' }}>
-              {tag}
-            </Tag>
-          ))}
-        </div>
-        
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <Avatar size="small" icon={<UserOutlined />} />
-            <Text style={{ marginLeft: 4, fontSize: 11 }}>{task.assignee}</Text>
-          </div>
-          
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <ClockCircleOutlined style={{ color: isOverdue ? '#f5222d' : '#666', fontSize: 12 }} />
-            <Text 
-              style={{ 
-                marginLeft: 4, 
-                fontSize: 11,
-                color: isOverdue ? '#f5222d' : '#666'
-              }}
-            >
-              {dayjs(task.dueDate).format('DD/MM')}
+        bodyStyle={{ padding: '12px' }}
+        title={
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <Text strong style={{ 
+              color: columnStyle.headerColor,
+              fontSize: '16px'
+            }}>
+              {title}
             </Text>
+            <div style={{
+              backgroundColor: columnStyle.headerColor,
+              color: 'white',
+              borderRadius: '12px',
+              padding: '2px 8px',
+              fontSize: '12px',
+              fontWeight: 'bold'
+            }}>
+              {filteredCards.length}
+            </div>
           </div>
+        }
+      >
+        <div
+          onDrop={handleDragEnd}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          style={{
+            height: 'calc(100% - 40px)',
+            minHeight: '400px',
+            position: 'relative'
+          }}
+        >
+          {filteredCards.map((c) => {
+            return <TaskCard key={c.id} {...c} handleDragStart={handleDragStart} />;
+          })}
+          <DropIndicator beforeId={null} column={column} />
+          <AddCard column={column} setCards={setCards} />
         </div>
       </Card>
-    );
+    </div>
+  );
+};
+
+type CardProps = CardType & {
+  handleDragStart: Function;
+};
+
+const TaskCard = ({ title, id, column, handleDragStart }: CardProps) => {
+  return (
+    <>
+      <DropIndicator beforeId={id} column={column} />
+      <motion.div
+        layout
+        layoutId={id}
+        draggable="true"
+        onDragStart={(e) => handleDragStart(e, { title, id, column })}
+        style={{
+          cursor: 'grab',
+          marginBottom: '8px',
+          border: `1px solid ${projectColors.border}`,
+          borderRadius: '8px',
+          backgroundColor: projectColors.cardBg,
+          padding: '12px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          transition: 'all 0.2s ease'
+        }}
+        whileHover={{
+          boxShadow: '0 4px 8px rgba(0,0,0,0.15)',
+          scale: 1.02
+        }}
+        whileDrag={{
+          scale: 1.05,
+          rotate: 5,
+          boxShadow: '0 8px 16px rgba(0,0,0,0.2)'
+        }}
+      >
+        <Text style={{ 
+          fontSize: '14px',
+          color: projectColors.text,
+          fontWeight: '500'
+        }}>
+          {title}
+        </Text>
+      </motion.div>
+    </>
+  );
+};
+
+type DropIndicatorProps = {
+  beforeId: string | null;
+  column: string;
+};
+
+const DropIndicator = ({ beforeId, column }: DropIndicatorProps) => {
+  return (
+    <div
+      data-before={beforeId || "-1"}
+      data-column={column}
+      style={{
+        height: '2px',
+        width: '100%',
+        backgroundColor: projectColors.primary,
+        opacity: 0,
+        margin: '2px 0',
+        borderRadius: '1px',
+        transition: 'opacity 0.2s ease'
+      }}
+    />
+  );
+};
+
+const BurnBarrel = ({
+  setCards,
+}: {
+  setCards: Dispatch<SetStateAction<CardType[]>>;
+}) => {
+  const [active, setActive] = useState(false);
+
+  const handleDragOver = (e: DragEvent) => {
+    e.preventDefault();
+    setActive(true);
+  };
+
+  const handleDragLeave = () => {
+    setActive(false);
+  };
+
+  const handleDragEnd = (e: DragEvent) => {
+    const cardId = e.dataTransfer.getData("cardId");
+    setCards((pv) => pv.filter((c) => c.id !== cardId));
+    setActive(false);
   };
 
   return (
-    <div style={{ padding: 20, height: 'calc(100vh - 200px)', overflow: 'auto' }}>
-      <div style={{ marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Title level={3} style={{ margin: 0 }}>📋 Kanban Board</Title>
-        <Button 
-          type="primary" 
-          icon={<PlusOutlined />}
-          onClick={() => openModal()}
-        >
-          Nova Tarefa
-        </Button>
-      </div>
-
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(4, 1fr)', 
-        gap: 16,
-        height: 'calc(100% - 60px)'
+    <Card
+      style={{
+        width: '200px',
+        height: '200px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+        backgroundColor: active ? '#fff2f0' : '#fafafa',
+        border: `2px dashed ${active ? projectColors.error : projectColors.border}`,
+        borderRadius: '12px',
+        cursor: 'pointer',
+        transition: 'all 0.3s ease',
+        marginTop: '20px'
+      }}
+      bodyStyle={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 0,
+        height: '100%'
+      }}
+      onDrop={handleDragEnd}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+    >
+      <div style={{
+        textAlign: 'center',
+        color: active ? projectColors.error : projectColors.textSecondary
       }}>
-        {columns.map(column => (
-          <div
-            key={column.id}
-            onDragOver={handleDragOver}
-            onDrop={(e) => handleDrop(e, column.status)}
+        {active ? (
+          <motion.div
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{ duration: 0.5, repeat: Infinity }}
+          >
+            <FaFire size={32} />
+          </motion.div>
+        ) : (
+          <FiTrash size={32} />
+        )}
+        <div style={{ marginTop: '8px', fontSize: '12px' }}>
+          {active ? 'Solte para excluir' : 'Zona de exclusão'}
+        </div>
+      </div>
+    </Card>
+  );
+};
+
+type AddCardProps = {
+  column: ColumnType;
+  setCards: Dispatch<SetStateAction<CardType[]>>;
+};
+
+const AddCard = ({ column, setCards }: AddCardProps) => {
+  const [text, setText] = useState("");
+  const [adding, setAdding] = useState(false);
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!text.trim().length) return;
+
+    const newCard = {
+      column,
+      title: text.trim(),
+      id: Math.random().toString(),
+    };
+
+    setCards((pv) => [...pv, newCard]);
+    setAdding(false);
+    setText("");
+  };
+
+  return (
+    <>
+      {adding ? (
+        <motion.form 
+          layout 
+          onSubmit={handleSubmit}
+          style={{ marginTop: '8px' }}
+        >
+          <textarea
+            onChange={(e) => setText(e.target.value)}
+            autoFocus
+            placeholder="Digite sua nova tarefa..."
             style={{
-              backgroundColor: column.color,
-              borderRadius: 8,
-              padding: 16,
-              minHeight: 400,
-              border: '2px dashed #d9d9d9'
+              width: '100%',
+              borderRadius: '6px',
+              border: `1px solid ${projectColors.primary}`,
+              backgroundColor: 'rgba(24, 144, 255, 0.1)',
+              padding: '12px',
+              fontSize: '14px',
+              color: projectColors.text,
+              resize: 'vertical',
+              minHeight: '80px',
+              outline: 'none'
+            }}
+            value={text}
+          />
+          <Space style={{ marginTop: '8px', width: '100%', justifyContent: 'flex-end' }}>
+            <Button
+              size="small"
+              onClick={() => {
+                setAdding(false);
+                setText("");
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="primary"
+              size="small"
+              htmlType="submit"
+              icon={<PlusOutlined />}
+            >
+              Adicionar
+            </Button>
+          </Space>
+        </motion.form>
+      ) : (
+        <motion.div layout>
+          <Button
+            type="dashed"
+            block
+            onClick={() => setAdding(true)}
+            icon={<PlusOutlined />}
+            style={{
+              marginTop: '8px',
+              borderColor: projectColors.primary,
+              color: projectColors.primary,
+              height: '40px'
             }}
           >
-            <div style={{ 
-              marginBottom: 16, 
-              display: 'flex', 
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}>
-              <Text strong style={{ fontSize: 16 }}>
-                {column.icon} {column.title}
-              </Text>
-              <Tag color="blue">
-                {tasks.filter(task => task.status === column.status).length}
-              </Tag>
-            </div>
-            
-            <div>
-              {tasks
-                .filter(task => task.status === column.status)
-                .map(task => (
-                  <TaskCard key={task.id} task={task} />
-                ))}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <Modal
-        title={editingTask ? "Editar Tarefa" : "Nova Tarefa"}
-        open={isModalVisible}
-        onCancel={() => setIsModalVisible(false)}
-        onOk={() => form.submit()}
-        width={600}
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSave}
-        >
-          <Form.Item
-            name="title"
-            label="Título"
-            rules={[{ required: true, message: 'Digite o título da tarefa' }]}
-          >
-            <Input placeholder="Digite o título da tarefa" />
-          </Form.Item>
-
-          <Form.Item
-            name="description"
-            label="Descrição"
-            rules={[{ required: true, message: 'Digite a descrição' }]}
-          >
-            <TextArea rows={3} placeholder="Descreva a tarefa detalhadamente" />
-          </Form.Item>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-            <Form.Item
-              name="assignee"
-              label="Responsável"
-              rules={[{ required: true, message: 'Selecione o responsável' }]}
-            >
-              <Select placeholder="Selecione o responsável">
-                <Select.Option value="João Silva">João Silva</Select.Option>
-                <Select.Option value="Maria Santos">Maria Santos</Select.Option>
-                <Select.Option value="Pedro Costa">Pedro Costa</Select.Option>
-                <Select.Option value="Ana Oliveira">Ana Oliveira</Select.Option>
-              </Select>
-            </Form.Item>
-
-            <Form.Item
-              name="priority"
-              label="Prioridade"
-              rules={[{ required: true, message: 'Selecione a prioridade' }]}
-            >
-              <Select placeholder="Selecione a prioridade">
-                <Select.Option value="baixa">🟢 Baixa</Select.Option>
-                <Select.Option value="media">🟡 Média</Select.Option>
-                <Select.Option value="alta">🟠 Alta</Select.Option>
-                <Select.Option value="urgente">🔴 Urgente</Select.Option>
-              </Select>
-            </Form.Item>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-            <Form.Item
-              name="dueDate"
-              label="Data de Entrega"
-              rules={[{ required: true, message: 'Selecione a data' }]}
-            >
-              <DatePicker 
-                style={{ width: '100%' }}
-                format="DD/MM/YYYY"
-                placeholder="Selecione a data"
-              />
-            </Form.Item>
-
-            <Form.Item
-              name="tags"
-              label="Tags"
-            >
-              <Select
-                mode="tags"
-                placeholder="Adicione tags"
-                style={{ width: '100%' }}
-              >
-                <Select.Option value="Frontend">Frontend</Select.Option>
-                <Select.Option value="Backend">Backend</Select.Option>
-                <Select.Option value="Design">Design</Select.Option>
-                <Select.Option value="API">API</Select.Option>
-                <Select.Option value="Database">Database</Select.Option>
-              </Select>
-            </Form.Item>
-          </div>
-        </Form>
-      </Modal>
-    </div>
+            Adicionar tarefa
+          </Button>
+        </motion.div>
+      )}
+    </>
   );
+};
+
+type ColumnType = "backlog" | "todo" | "doing" | "done";
+
+type CardType = {
+  title: string;
+  id: string;
+  column: ColumnType;
+};
+
+const DEFAULT_CARDS: CardType[] = [
+  // BACKLOG
+  { title: "Implementar sistema de notificações", id: "1", column: "backlog" },
+  { title: "Configurar pipeline de CI/CD", id: "2", column: "backlog" },
+  { title: "Migração para microserviços", id: "3", column: "backlog" },
+  { title: "Documentar APIs do sistema", id: "4", column: "backlog" },
+  
+  // TODO
+  { title: "Pesquisar opções de banco NoSQL", id: "5", column: "todo" },
+  { title: "Revisar código do módulo de pagamento", id: "6", column: "todo" },
+  { title: "Sync com equipe sobre roadmap Q4", id: "7", column: "todo" },
+
+  // DOING
+  { title: "Refatorar componentes de autenticação", id: "8", column: "doing" },
+  { title: "Implementar logs detalhados", id: "9", column: "doing" },
+  
+  // DONE
+  { title: "Configurar monitoring em produção", id: "10", column: "done" },
+  { title: "Implementar testes automatizados", id: "11", column: "done" },
+];
+
+const KanbanBoard: React.FC = () => {
+  return <ProjectKanban />;
 };
 
 export default KanbanBoard;

@@ -11,8 +11,8 @@ interface Theme {
 
 const lightTheme: Theme = {
   colors: {
-    primary: '#1E3A8A',
-    secondary: '#2B7FFF',
+    primary: '#001f90',
+    secondary: '#90a8ff',
     background: '#FFFFFF',
     text: '#000000',
   },
@@ -20,8 +20,8 @@ const lightTheme: Theme = {
 
 const darkTheme: Theme = {
   colors: {
-    primary: '#1E3A8A',
-    secondary: '#2B7FFF',
+    primary: '#001f90',
+    secondary: '#90a8ff',
     background: '#000000',
     text: '#FFFFFF',
   },

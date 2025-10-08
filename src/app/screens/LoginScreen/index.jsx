@@ -43,7 +43,6 @@ export default function LoginScreen({ onLogin }) {
       padding: '20px',
       position: 'relative'
     }}>
-   \
       <button
         onClick={toggleTheme}
         style={{
@@ -61,7 +60,8 @@ export default function LoginScreen({ onLogin }) {
           alignItems: 'center',
           justifyContent: 'center',
           backdropFilter: 'blur(10px)',
-          transition: 'all 0.3s ease'
+          transition: 'all 0.3s ease',
+          zIndex: 10
         }}
         onMouseOver={(e) => e.target.style.background = 'rgba(255, 255, 255, 0.3)'}
         onMouseOut={(e) => e.target.style.background = 'rgba(255, 255, 255, 0.2)'}
@@ -69,6 +69,7 @@ export default function LoginScreen({ onLogin }) {
       >
         {isDark ? '☀️' : '🌙'}
       </button>
+
 
       <form 
         onSubmit={handleSubmit}
@@ -78,7 +79,9 @@ export default function LoginScreen({ onLogin }) {
           borderRadius: '12px',
           boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
           width: '100%',
-          maxWidth: '400px'
+          maxWidth: '400px',
+          position: 'relative',
+          zIndex: 2
         }}
       >
         <h1 style={{ 

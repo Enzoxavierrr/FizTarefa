@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import LoginScreen from './screens/LoginScreen';
 import HomeScreen from './screens/HomeScreen/index.tsx';
-import { ThemeProvider } from '../theme/useTheme';
+import { ThemeProvider } from '../theme/useTheme.tsx';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState('login'); // 'login' ou 'home'
