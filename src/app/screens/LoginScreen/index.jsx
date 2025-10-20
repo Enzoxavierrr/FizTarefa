@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTheme } from '../../../theme/useTheme';
+import EncryptButton from '../../components/EncryptButton';
 
 export default function LoginScreen({ onLogin }) {
   const { theme, isDark, toggleTheme } = useTheme();
@@ -35,7 +36,7 @@ export default function LoginScreen({ onLogin }) {
 
   return (
     <div style={{ 
-      backgroundColor: theme.colors.primary,
+      background: 'linear-gradient(135deg, #1e293b 0%, #475569 50%, #6366f1 100%)',
       minHeight: '100vh',
       display: 'flex',
       alignItems: 'center',
@@ -61,7 +62,7 @@ export default function LoginScreen({ onLogin }) {
           justifyContent: 'center',
           backdropFilter: 'blur(10px)',
           transition: 'all 0.3s ease',
-          zIndex: 10
+          zIndex: 20
         }}
         onMouseOver={(e) => e.target.style.background = 'rgba(255, 255, 255, 0.3)'}
         onMouseOut={(e) => e.target.style.background = 'rgba(255, 255, 255, 0.2)'}
@@ -70,25 +71,28 @@ export default function LoginScreen({ onLogin }) {
         {isDark ? '☀️' : '🌙'}
       </button>
 
-
       <form 
         onSubmit={handleSubmit}
         style={{
-          backgroundColor: theme.colors.background,
+          backgroundColor: 'rgba(30, 41, 59, 0.95)',
           padding: '40px',
           borderRadius: '12px',
           boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-          width: '100%',
-          maxWidth: '400px',
+          width: '400px',
+          maxWidth: '90vw',
           position: 'relative',
-          zIndex: 2
+          zIndex: 2,
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 255, 255, 0.1)'
         }}
       >
+      
         <h1 style={{ 
           textAlign: 'center', 
           marginBottom: '30px',
-          color: theme.colors.text,
-          fontSize: '28px'
+          color: 'white', // Sempre branco para contraste
+          fontSize: '28px',
+          textShadow: '0 2px 4px rgba(0,0,0,0.5)'
         }}>
           🎯 FizTarefa
         </h1>
@@ -96,8 +100,9 @@ export default function LoginScreen({ onLogin }) {
         <p style={{ 
           textAlign: 'center', 
           marginBottom: '30px',
-          color: isDark ? '#ccc' : '#666',
-          fontSize: '16px'
+          color: 'rgba(255, 255, 255, 0.8)', // Branco semi-transparente
+          fontSize: '16px',
+          textShadow: '0 1px 2px rgba(0,0,0,0.5)'
         }}>
           Entre para gerenciar suas tarefas
         </p>
@@ -107,7 +112,7 @@ export default function LoginScreen({ onLogin }) {
             display: 'block', 
             marginBottom: '8px', 
             fontWeight: '600',
-            color: theme.colors.text
+            color: 'white' // Sempre branco para contraste
           }}>
             Email
           </label>
@@ -120,16 +125,16 @@ export default function LoginScreen({ onLogin }) {
             style={{
               width: '100%',
               padding: '14px',
-              border: `2px solid ${isDark ? '#444' : '#e1e5e9'}`,
+              border: '2px solid rgba(255, 255, 255, 0.2)',
               borderRadius: '8px',
               fontSize: '16px',
               transition: 'border-color 0.3s',
               outline: 'none',
-              backgroundColor: theme.colors.background,
-              color: theme.colors.text
+              backgroundColor: 'rgba(30, 41, 59, 0.8)',
+              color: 'white'
             }}
-            onFocus={(e) => e.target.style.borderColor = theme.colors.secondary}
-            onBlur={(e) => e.target.style.borderColor = isDark ? '#444' : '#e1e5e9'}
+            onFocus={(e) => e.target.style.borderColor = '#6366f1'}
+            onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)'}
           />
         </div>
         
@@ -138,7 +143,7 @@ export default function LoginScreen({ onLogin }) {
             display: 'block', 
             marginBottom: '8px', 
             fontWeight: '600',
-            color: theme.colors.text
+            color: 'white'
           }}>
             Senha
           </label>
@@ -151,79 +156,56 @@ export default function LoginScreen({ onLogin }) {
             style={{
               width: '100%',
               padding: '14px',
-              border: `2px solid ${isDark ? '#444' : '#e1e5e9'}`,
+              border: '2px solid rgba(255, 255, 255, 0.2)',
               borderRadius: '8px',
               fontSize: '16px',
               transition: 'border-color 0.3s',
               outline: 'none',
-              backgroundColor: theme.colors.background,
-              color: theme.colors.text
+              backgroundColor: 'rgba(30, 41, 59, 0.8)',
+              color: 'white'
             }}
-            onFocus={(e) => e.target.style.borderColor = theme.colors.secondary}
-            onBlur={(e) => e.target.style.borderColor = isDark ? '#444' : '#e1e5e9'}
+            onFocus={(e) => e.target.style.borderColor = '#6366f1'}
+            onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)'}
           />
         </div>
         
-        <button 
-          type="submit"
-          disabled={isLoading}
-          style={{
-            width: '100%',
-            padding: '16px',
-            backgroundColor: isLoading ? '#ccc' : theme.colors.secondary,
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '16px',
-            fontWeight: '600',
-            cursor: isLoading ? 'not-allowed' : 'pointer',
-            transition: 'all 0.2s ease',
-            marginBottom: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px'
-          }}
-          onMouseOver={(e) => {
-            if (!isLoading) {
-              e.target.style.transform = 'translateY(-2px)';
-              e.target.style.boxShadow = '0 4px 12px rgba(43, 127, 255, 0.3)';
-            }
-          }}
-          onMouseOut={(e) => {
-            if (!isLoading) {
-              e.target.style.transform = 'translateY(0)';
-              e.target.style.boxShadow = 'none';
-            }
-          }}
-        >
-          {isLoading ? (
-            <>
-              <div style={{
-                width: '16px',
-                height: '16px',
-                border: '2px solid #ffffff',
-                borderTop: '2px solid transparent',
-                borderRadius: '50%',
-                animation: 'spin 1s linear infinite'
-              }} />
-              Entrando...
-            </>
-          ) : (
-            'Entrar'
-          )}
-        </button>
+        <div style={{ marginBottom: '20px' }}>
+          <EncryptButton
+            type="submit"
+            disabled={isLoading}
+            style={{
+              backgroundColor: isLoading ? '#ccc' : '#6366f1',
+              borderColor: isLoading ? '#ccc' : '#6366f1',
+            }}
+          >
+            {isLoading ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{
+                  width: '16px',
+                  height: '16px',
+                  border: '2px solid #ffffff',
+                  borderTop: '2px solid transparent',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite'
+                }} />
+                Entrando...
+              </div>
+            ) : (
+              'Entrar'
+            )}
+          </EncryptButton>
+        </div>
         
         <p style={{ 
           textAlign: 'center', 
           fontSize: '14px', 
-          color: isDark ? '#ccc' : '#666'
+          color: 'rgba(255, 255, 255, 0.7)'
         }}>
           Não tem uma conta?{' '}
           <a 
             href="#" 
             style={{ 
-              color: theme.colors.secondary, 
+              color: '#6366f1', 
               textDecoration: 'none',
               fontWeight: '600'
             }}
