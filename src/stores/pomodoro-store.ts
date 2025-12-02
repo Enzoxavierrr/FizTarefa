@@ -78,7 +78,7 @@ export const usePomodoroStore = create<PomodoroStore>()(
       
       // Sincroniza o tempo após recarregar a página (calcula tempo passado)
       syncTime: () => {
-        const { isRunning, lastTickTime, timeRemaining, phase } = get()
+        const { isRunning, lastTickTime, timeRemaining } = get()
         
         if (!isRunning || !lastTickTime) return
         

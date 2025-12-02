@@ -13,11 +13,9 @@ import {
   isSameDay,
   isToday,
   parseISO,
-  setHours,
-  setMinutes,
 } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { motion, AnimatePresence, Reorder } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { ChevronLeft, ChevronRight, Plus, Circle, X, Clock, GripVertical } from "lucide-react"
 import { Sidebar } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
@@ -47,10 +45,6 @@ function getDifficultyColorLight(value: number): string {
 // Helper para obter a data da tarefa
 function getTaskDate(task: Task): string {
   return task.start_date || task.created_at
-}
-
-interface ScheduledTask extends Task {
-  scheduledHour?: number
 }
 
 interface DayCellProps {

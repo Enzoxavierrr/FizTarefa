@@ -35,7 +35,6 @@ import {
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/hooks/use-auth"
 import { toast } from "sonner"
-import { useNavigate } from "react-router-dom"
 
 type SettingsSection = "profile" | "appearance" | "timer" | "notifications" | "privacy" | "help"
 
@@ -219,7 +218,7 @@ function AppearanceSection() {
                 "w-10 h-10 rounded-full transition-all",
                 accentColor === c.name && "ring-2 ring-offset-2 ring-offset-background"
               )}
-              style={{ backgroundColor: c.color, ringColor: c.color }}
+              style={{ backgroundColor: c.color }}
             />
           ))}
         </div>
@@ -395,12 +394,10 @@ function NotificationsSection() {
 }
 
 function PrivacySection() {
-  const { signOut, deleteAccount, getUserName } = useAuth()
-  const navigate = useNavigate()
+  const { signOut, deleteAccount } = useAuth()
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [confirmText, setConfirmText] = useState("")
-  const userName = getUserName()
 
   const handleLogout = async () => {
     await signOut()

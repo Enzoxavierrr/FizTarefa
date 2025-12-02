@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react"
+import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Play, Pause, RotateCcw, Coffee, Brain, Sparkles, Volume2, VolumeX } from "lucide-react"
 import { Sidebar } from "@/components/dashboard"

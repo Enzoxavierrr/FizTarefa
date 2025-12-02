@@ -61,7 +61,7 @@ function Dashboard() {
           <StatsCard value={totalPomodoros.toString()} label="Pomodoros" />
           <StatsCard value={completedTasks.toString()} label="Tarefas Feitas" />
         </div>
-        <StatisticsChart tasks={tasks} />
+        <StatisticsChart />
       </main>
       <RightPanel />
     </div>
