@@ -100,14 +100,14 @@ export function PomodoroBackground() {
 async function incrementTaskPomodoros(taskId: string) {
   try {
     // Primeiro busca o valor atual
-    const { data: task } = await supabase
+    const { data: task } = await (supabase as any)
       .from('tasks')
       .select('pomodoros_completed')
       .eq('id', taskId)
       .single()
 
     if (task) {
-      await supabase
+      await (supabase as any)
         .from('tasks')
         .update({ pomodoros_completed: (task.pomodoros_completed || 0) + 1 })
         .eq('id', taskId)

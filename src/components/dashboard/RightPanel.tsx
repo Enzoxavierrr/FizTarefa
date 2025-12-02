@@ -8,7 +8,6 @@ import { CreateTaskCard } from "./CreateTaskCard"
 import { useCalendarStore } from "@/stores/calendar-store"
 import { useTasks } from "@/hooks/use-tasks"
 import { isSameDay, parseISO, format } from "date-fns"
-import { ptBR } from "date-fns/locale"
 
 function RightPanel() {
   const { selectedDate } = useCalendarStore()

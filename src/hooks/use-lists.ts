@@ -60,7 +60,7 @@ export function useLists() {
   const createList = async (name: string, color: string) => {
     if (!user) return { error: new Error('Usuário não autenticado') }
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('lists')
       .insert({
         user_id: user.id,
@@ -81,7 +81,7 @@ export function useLists() {
   }
 
   const updateList = async (id: string, updates: Partial<Pick<List, 'name' | 'color'>>) => {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('lists')
       .update(updates)
       .eq('id', id)

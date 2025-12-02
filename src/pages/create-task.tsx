@@ -66,7 +66,7 @@ export function CreateTaskPage() {
     setIsSubmitting(true)
 
     try {
-      const { data, error } = await createTask({
+      const { error } = await createTask({
         title: formData.name,
         description: formData.description || undefined,
         difficulty: formData.difficulty,

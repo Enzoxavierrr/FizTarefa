@@ -33,6 +33,11 @@ export interface Database {
           description: string | null
           completed: boolean
           pomodoros_completed: number
+          difficulty: number
+          estimated_time: number
+          start_date: string | null
+          deadline: string | null
+          scheduled_time: number | null
           created_at: string
         }
         Insert: {
@@ -43,6 +48,11 @@ export interface Database {
           description?: string | null
           completed?: boolean
           pomodoros_completed?: number
+          difficulty?: number
+          estimated_time?: number
+          start_date?: string | null
+          deadline?: string | null
+          scheduled_time?: number | null
           created_at?: string
         }
         Update: {
@@ -53,6 +63,11 @@ export interface Database {
           description?: string | null
           completed?: boolean
           pomodoros_completed?: number
+          difficulty?: number
+          estimated_time?: number
+          start_date?: string | null
+          deadline?: string | null
+          scheduled_time?: number | null
           created_at?: string
         }
       }

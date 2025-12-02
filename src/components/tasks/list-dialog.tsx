@@ -23,7 +23,7 @@ interface ListDialogProps {
 export function ListDialog({ open, onOpenChange, list }: ListDialogProps) {
   const { createList, updateList } = useLists()
   const [name, setName] = useState('')
-  const [color, setColor] = useState(LIST_COLORS[0])
+  const [color, setColor] = useState<string>(LIST_COLORS[0])
   const [loading, setLoading] = useState(false)
 
   const isEditing = !!list

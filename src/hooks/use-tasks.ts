@@ -95,7 +95,7 @@ export function useTasks(listId?: string | null) {
           deadline: taskData.deadline || null,
         }
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('tasks')
       .insert(insertData)
       .select()
@@ -119,7 +119,7 @@ export function useTasks(listId?: string | null) {
       )
     )
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('tasks')
       .update(updates)
       .eq('id', id)
@@ -146,7 +146,7 @@ export function useTasks(listId?: string | null) {
       )
     )
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('tasks')
       .update({ scheduled_time: scheduledTime })
       .eq('id', id)

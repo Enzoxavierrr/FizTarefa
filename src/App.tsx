@@ -61,7 +61,7 @@ function Dashboard() {
           <StatsCard value={totalPomodoros.toString()} label="Pomodoros" />
           <StatsCard value={completedTasks.toString()} label="Tarefas Feitas" />
         </div>
-        <StatisticsChart tasks={tasks} />
+        <StatisticsChart />
       </main>
       <RightPanel />
     </div>
@@ -69,16 +69,6 @@ function Dashboard() {
 }
 
 function App() {
-  if (!isSupabaseConfigured) {
-    return (
-      <div className="cursor-none">
-        <SmoothCursor />
-        <SetupPage />
-        <Toaster position="bottom-right" richColors toastOptions={{ className: 'cursor-none' }} />
-      </div>
-    )
-  }
-
   return (
     <div className="cursor-none">
       <SmoothCursor />
@@ -86,12 +76,17 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/auth" element={<AuthPage />} />
+          {!isSupabaseConfigured && <Route path="/setup" element={<SetupPage />} />}
           <Route
             path="/"
             element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
+              isSupabaseConfigured ? (
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              ) : (
+                <Navigate to="/auth" replace />
+              )
             }
           />
           <Route
