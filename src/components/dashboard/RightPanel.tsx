@@ -47,7 +47,7 @@ function RightPanel() {
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
         </Button>
-        <div className="flex items-center gap-2 cursor-pointer">
+        <div className="flex items-center gap-2">
           <Avatar className="h-10 w-10">
             <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=enzo" />
             <AvatarFallback>EN</AvatarFallback>

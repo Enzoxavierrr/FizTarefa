@@ -10,7 +10,7 @@ export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement
 const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
   ({ className, checked, onCheckedChange, ...props }, ref) => {
     return (
-      <label className="relative inline-flex items-center cursor-pointer">
+      <label className="relative inline-flex items-center">
         <input
           type="checkbox"
           className="sr-only peer"

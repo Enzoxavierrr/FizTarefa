@@ -44,7 +44,7 @@ interface DialogTriggerProps {
 function DialogTrigger({ children }: DialogTriggerProps) {
   const { setOpen } = useDialog()
   return (
-    <span onClick={() => setOpen(true)} className="cursor-pointer">
+    <span onClick={() => setOpen(true)}>
       {children}
     </span>
   )

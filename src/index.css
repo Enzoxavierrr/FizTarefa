@@ -121,18 +121,30 @@
 @layer base {
   * {
     @apply border-border;
-    cursor: none !important;
   }
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    cursor: none !important;
   }
+}
 
-  /* Esconder cursor nativo em todos os elementos interativos */
-  a, button, input, textarea, select, label, [role="button"], [tabindex] {
-    cursor: none !important;
-  }
+/* Esconder cursor nativo globalmente quando usando SmoothCursor */
+html, body, * {
+  cursor: none !important;
+}
+
+/* Garantir que elementos interativos também não mostrem cursor */
+a, button, input, textarea, select, label, 
+[role="button"], [tabindex], svg, img,
+::before, ::after {
+  cursor: none !important;
+}
+
+/* Inputs de texto - remover cursor de texto */
+input[type="text"], input[type="email"], input[type="password"],
+input[type="search"], input[type="tel"], input[type="url"],
+input[type="number"], textarea {
+  caret-color: hsl(var(--primary));
 }
 
 /* Magic UI Animations */

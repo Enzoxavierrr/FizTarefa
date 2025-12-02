@@ -27,7 +27,7 @@ const ShimmerButton = forwardRef<HTMLButtonElement, ShimmerButtonProps>(
       <button
         ref={ref}
         className={cn(
-          "group relative z-0 flex cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap px-6 py-3 font-medium text-white transition-all duration-300",
+          "group relative z-0 flex items-center justify-center overflow-hidden whitespace-nowrap px-6 py-3 font-medium text-white transition-all duration-300",
           "hover:scale-105 active:scale-95",
           "disabled:pointer-events-none disabled:opacity-50",
           className

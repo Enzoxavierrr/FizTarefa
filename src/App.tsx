@@ -59,7 +59,7 @@ function App() {
       <div className="cursor-none">
         <SmoothCursor />
         <SetupPage />
-        <Toaster position="bottom-right" richColors />
+        <Toaster position="bottom-right" richColors toastOptions={{ className: 'cursor-none' }} />
       </div>
     )
   }
@@ -79,7 +79,7 @@ function App() {
             }
           />
         </Routes>
-        <Toaster position="bottom-right" richColors />
+        <Toaster position="bottom-right" richColors toastOptions={{ className: 'cursor-none' }} />
       </BrowserRouter>
     </div>
   )
