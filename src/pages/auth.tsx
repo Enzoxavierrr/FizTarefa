@@ -1,14 +1,15 @@
 import { useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '@/hooks/use-auth'
-import { Loader2, Sparkles, Zap, Target, Clock } from 'lucide-react'
+import { Loader2, Sparkles, Zap, Target, Clock, AlertCircle } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { DotPattern } from '@/components/ui/dot-pattern'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { isSupabaseConfigured } from '@/lib/supabase'
 
 type AuthMode = 'login' | 'register'
 
@@ -43,6 +44,25 @@ export function AuthPage() {
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  if (!isSupabaseConfigured) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="max-w-md w-full bg-card border border-border rounded-lg p-6 space-y-4">
+          <div className="flex items-center gap-3 text-destructive">
+            <AlertCircle className="h-5 w-5" />
+            <h2 className="text-lg font-semibold">Supabase não configurado</h2>
+          </div>
+          <p className="text-muted-foreground">
+            Para usar o FizTarefa, você precisa configurar o Supabase primeiro.
+          </p>
+          <Link to="/setup">
+            <Button className="w-full">Ir para configuração</Button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   if (loading) {
     return (

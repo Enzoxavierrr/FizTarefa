@@ -8,7 +8,13 @@ const isMissingEnv = !supabaseUrl || !supabaseAnonKey
 
 export const supabase = isMissingEnv
   ? (null as any)
-  : createClient<Database>(supabaseUrl, supabaseAnonKey)
+  : createClient<Database>(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: false, // Desabilitar detecção automática de sessão na URL
+      },
+    })
 
 export const isSupabaseConfigured = !isMissingEnv
 
