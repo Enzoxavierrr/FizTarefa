@@ -9,7 +9,7 @@ function WelcomeHeader({ userName }: WelcomeHeaderProps) {
     <Card className="flex items-center justify-between p-6 bg-card border-border/50">
       <div>
         <h2 className="text-3xl font-bold text-foreground">Olá, {userName}!</h2>
-        <p className="text-muted-foreground mt-1">It's good to see you again.</p>
+        <p className="text-muted-foreground mt-1">Que bom te ver de novo.</p>
       </div>
       
       {/* Decorative geometric pattern */}

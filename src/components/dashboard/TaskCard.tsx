@@ -6,7 +6,7 @@ interface TaskCardProps {
   title: string
   description: string
   time: string
-  avatars: string[]
+  avatars?: string[]
   isCompleted?: boolean
   showActions?: boolean
 }
@@ -15,7 +15,7 @@ function TaskCard({
   title,
   description,
   time,
-  avatars,
+  avatars = [],
   isCompleted = false,
   showActions = false,
 }: TaskCardProps) {
@@ -30,13 +30,13 @@ function TaskCard({
         }`} />
       </div>
 
-      <div className="bg-sidebar text-sidebar-foreground rounded-2xl p-5">
-        <div className="flex items-start justify-between mb-3">
-          <h4 className="font-semibold text-lg">{title}</h4>
-          <span className="text-sm text-sidebar-foreground/70">{time}</span>
+      <div className="bg-sidebar text-sidebar-foreground rounded-2xl p-5 w-full">
+        <div className="flex items-start justify-between mb-3 gap-2">
+          <h4 className="font-semibold text-lg font-[Poppins] flex-1 min-w-0">{title}</h4>
+          <span className="text-sm text-sidebar-foreground/70 font-[Poppins] shrink-0 ml-2">{time}</span>
         </div>
         
-        <p className="text-sm text-sidebar-foreground/70 mb-4">{description}</p>
+        <p className="text-sm text-sidebar-foreground/70 mb-4 font-[Poppins]">{description}</p>
         
         <div className="flex items-center justify-between">
           {/* Avatars */}

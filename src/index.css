@@ -121,9 +121,9 @@
 @layer base {
   * {
     @apply border-border;
-  }
+}
 
-  body {
+body {
     @apply bg-background text-foreground font-sans antialiased;
   }
 }
@@ -177,11 +177,11 @@ input[type="number"], textarea {
 
 .animate-shimmer {
   animation: shimmer 2s infinite;
-}
+  }
 
 .animate-float {
   animation: float 3s ease-in-out infinite;
-}
+  }
 
 .animate-glow {
   animation: glow 2s ease-in-out infinite;

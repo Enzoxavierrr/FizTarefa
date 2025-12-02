@@ -187,8 +187,8 @@ export function AuthPage() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
             <AnimatePresence mode="wait">
-              {mode === 'register' && (
-                <motion.div
+            {mode === 'register' && (
+              <motion.div
                   key="name-field"
                   initial={{ opacity: 0, height: 0, marginBottom: 0 }}
                   animate={{ 
@@ -210,19 +210,19 @@ export function AuthPage() {
                     }
                   }}
                   className="space-y-2 overflow-hidden"
-                >
-                  <Label htmlFor="name">Nome</Label>
-                  <Input
-                    id="name"
-                    type="text"
-                    placeholder="Seu nome"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    disabled={isSubmitting}
-                    className="h-12"
-                  />
-                </motion.div>
-              )}
+              >
+                <Label htmlFor="name">Nome</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="Seu nome"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  disabled={isSubmitting}
+                  className="h-12"
+                />
+              </motion.div>
+            )}
             </AnimatePresence>
 
             <div className="space-y-2">

@@ -19,6 +19,10 @@ create table if not exists tasks (
   description text,
   completed boolean default false,
   pomodoros_completed int default 0,
+  difficulty int default 25,
+  estimated_time int default 60,
+  start_date timestamptz default now(),
+  deadline timestamptz,
   created_at timestamptz default now()
 );
 

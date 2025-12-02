@@ -64,16 +64,40 @@ export function useTasks(listId?: string | null) {
     setLoading(false)
   }
 
-  const createTask = async (title: string, listId?: string | null) => {
+  interface CreateTaskData {
+    title: string
+    description?: string
+    list_id?: string | null
+    difficulty?: number
+    estimated_time?: number
+    start_date?: string | null
+    deadline?: string | null
+  }
+
+  const createTask = async (taskData: CreateTaskData | string, listId?: string | null) => {
     if (!user) return { error: new Error('Usuário não autenticado') }
+
+    // Suporte para chamada antiga (apenas título) e nova (objeto completo)
+    const insertData = typeof taskData === 'string' 
+      ? {
+          user_id: user.id,
+          title: taskData,
+          list_id: listId || null,
+        }
+      : {
+          user_id: user.id,
+          title: taskData.title,
+          description: taskData.description || null,
+          list_id: taskData.list_id || null,
+          difficulty: taskData.difficulty ?? 25,
+          estimated_time: taskData.estimated_time ?? 60,
+          start_date: taskData.start_date || null,
+          deadline: taskData.deadline || null,
+        }
 
     const { data, error } = await supabase
       .from('tasks')
-      .insert({
-        user_id: user.id,
-        title,
-        list_id: listId || null,
-      })
+      .insert(insertData)
       .select()
       .single()
 
@@ -87,7 +111,14 @@ export function useTasks(listId?: string | null) {
     return { data, error }
   }
 
-  const updateTask = async (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'completed' | 'pomodoros_completed' | 'list_id'>>) => {
+  const updateTask = async (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'completed' | 'pomodoros_completed' | 'list_id' | 'scheduled_time' | 'start_date' | 'difficulty' | 'estimated_time'>>) => {
+    // Optimistic update
+    setTasks(prevTasks =>
+      prevTasks.map(task =>
+        task.id === id ? { ...task, ...updates } : task
+      )
+    )
+
     const { data, error } = await supabase
       .from('tasks')
       .update(updates)
@@ -96,7 +127,40 @@ export function useTasks(listId?: string | null) {
       .single()
 
     if (error) {
+      // Reverte em caso de erro
+      fetchTasks()
       toast.error('Erro ao atualizar tarefa')
+      console.error(error)
+    } else {
+      toast.success('Tarefa atualizada!')
+    }
+
+    return { data, error }
+  }
+
+  const scheduleTask = async (id: string, scheduledTime: number | null) => {
+    // Optimistic update
+    setTasks(prevTasks => 
+      prevTasks.map(task => 
+        task.id === id ? { ...task, scheduled_time: scheduledTime } : task
+      )
+    )
+
+    const { data, error } = await supabase
+      .from('tasks')
+      .update({ scheduled_time: scheduledTime })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) {
+      // Reverte se houver erro
+      setTasks(prevTasks => 
+        prevTasks.map(task => 
+          task.id === id ? { ...task, scheduled_time: task.scheduled_time } : task
+        )
+      )
+      toast.error('Erro ao agendar tarefa')
       console.error(error)
     }
 
@@ -104,7 +168,25 @@ export function useTasks(listId?: string | null) {
   }
 
   const toggleTaskComplete = async (id: string, completed: boolean) => {
-    return updateTask(id, { completed })
+    // Optimistic update - atualiza a UI imediatamente
+    setTasks(prevTasks => 
+      prevTasks.map(task => 
+        task.id === id ? { ...task, completed } : task
+      )
+    )
+    
+    const result = await updateTask(id, { completed })
+    
+    // Se houver erro, reverte a mudança
+    if (result.error) {
+      setTasks(prevTasks => 
+        prevTasks.map(task => 
+          task.id === id ? { ...task, completed: !completed } : task
+        )
+      )
+    }
+    
+    return result
   }
 
   const incrementPomodoros = async (id: string) => {
@@ -115,9 +197,14 @@ export function useTasks(listId?: string | null) {
   }
 
   const deleteTask = async (id: string) => {
+    // Optimistic update - remove a tarefa imediatamente da UI
+    setTasks(prevTasks => prevTasks.filter(task => task.id !== id))
+
     const { error } = await supabase.from('tasks').delete().eq('id', id)
 
     if (error) {
+      // Reverte em caso de erro - recarrega as tarefas
+      fetchTasks()
       toast.error('Erro ao excluir tarefa')
       console.error(error)
     } else {
@@ -140,6 +227,7 @@ export function useTasks(listId?: string | null) {
     incrementPomodoros,
     deleteTask,
     getTaskById,
+    scheduleTask,
     refetch: fetchTasks,
   }
 }

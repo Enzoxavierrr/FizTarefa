@@ -9,6 +9,7 @@ interface PomodoroStore {
   isRunning: boolean
   cyclesCompleted: number
   currentTaskId: string | null
+  lastTickTime: number
   
   // Actions
   start: () => void
@@ -18,6 +19,7 @@ interface PomodoroStore {
   tick: () => void
   setCurrentTask: (taskId: string | null) => void
   completePhase: () => void
+  syncTime: () => void // Sincroniza tempo após recarregar
 }
 
 export const usePomodoroStore = create<PomodoroStore>()(
@@ -28,8 +30,9 @@ export const usePomodoroStore = create<PomodoroStore>()(
       isRunning: false,
       cyclesCompleted: 0,
       currentTaskId: null,
+      lastTickTime: Date.now(),
 
-      start: () => set({ isRunning: true }),
+      start: () => set({ isRunning: true, lastTickTime: Date.now() }),
       
       pause: () => set({ isRunning: false }),
       
@@ -69,7 +72,28 @@ export const usePomodoroStore = create<PomodoroStore>()(
         if (timeRemaining <= 1) {
           get().completePhase()
         } else {
-          set({ timeRemaining: timeRemaining - 1 })
+          set({ timeRemaining: timeRemaining - 1, lastTickTime: Date.now() })
+        }
+      },
+      
+      // Sincroniza o tempo após recarregar a página (calcula tempo passado)
+      syncTime: () => {
+        const { isRunning, lastTickTime, timeRemaining, phase } = get()
+        
+        if (!isRunning || !lastTickTime) return
+        
+        const now = Date.now()
+        const elapsedSeconds = Math.floor((now - lastTickTime) / 1000)
+        
+        if (elapsedSeconds > 0) {
+          const newTimeRemaining = timeRemaining - elapsedSeconds
+          
+          if (newTimeRemaining <= 0) {
+            // O timer teria terminado enquanto estava fechado
+            get().completePhase()
+          } else {
+            set({ timeRemaining: newTimeRemaining, lastTickTime: now })
+          }
         }
       },
       
@@ -100,8 +124,12 @@ export const usePomodoroStore = create<PomodoroStore>()(
     {
       name: 'pomodoro-storage',
       partialize: (state) => ({
+        phase: state.phase,
+        timeRemaining: state.timeRemaining,
+        isRunning: state.isRunning,
         cyclesCompleted: state.cyclesCompleted,
         currentTaskId: state.currentTaskId,
+        lastTickTime: Date.now(), // Salva quando foi o último tick
       }),
     }
   )

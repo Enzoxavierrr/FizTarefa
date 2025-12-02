@@ -19,6 +19,11 @@ export interface Task {
   description: string | null
   completed: boolean
   pomodoros_completed: number
+  difficulty: number
+  estimated_time: number
+  start_date: string | null
+  deadline: string | null
+  scheduled_time: number | null // Hora do dia agendada (0-23)
   created_at: string
 }
 
