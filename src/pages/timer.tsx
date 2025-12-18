@@ -1,12 +1,12 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Play, Pause, RotateCcw, Coffee, Brain, Sparkles, Volume2, VolumeX } from "lucide-react"
-import { Sidebar, GuestModeBanner } from "@/components/dashboard"
+import { Play, Pause, RotateCcw, Coffee, Brain, Sparkles, Volume2, VolumeX, Menu } from "lucide-react"
+import { Sidebar, GuestModeBanner, MobileMenu } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { PomodoroPhase } from "@/types"
-import { POMODORO_DURATIONS } from "@/types"
 import { usePomodoroStore } from "@/stores/pomodoro-store"
+import { useTimerSettingsStore } from "@/stores/timer-settings-store"
 
 const phaseConfig = {
   work: {
@@ -220,10 +220,14 @@ function TimerPage() {
   const start = usePomodoroStore((state) => state.start)
   const pause = usePomodoroStore((state) => state.pause)
   const reset = usePomodoroStore((state) => state.reset)
+  
+  const getDurations = useTimerSettingsStore((state) => state.getDurations)
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
 
-  const totalTime = POMODORO_DURATIONS[phase]
+  const durations = getDurations()
+  const totalTime = durations[phase]
   const fillPercentage = ((totalTime - timeRemaining) / totalTime) * 100
   const config = phaseConfig[phase]
   const PhaseIcon = config.icon
@@ -250,42 +254,65 @@ function TimerPage() {
 
   // Selecionar fase manualmente
   const selectPhase = (newPhase: PomodoroPhase) => {
+    const durations = getDurations()
     // Atualiza o store com a nova fase
     usePomodoroStore.setState({
       phase: newPhase,
-      timeRemaining: POMODORO_DURATIONS[newPhase],
+      timeRemaining: durations[newPhase],
       isRunning: false,
     })
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 flex gap-6">
-      <Sidebar />
-      
-      <main className="flex-1 flex flex-col items-center justify-center gap-8">
-        <GuestModeBanner />
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center"
+    <div className="min-h-screen bg-background p-2 sm:p-4">
+      {/* Mobile Menu Button */}
+      <div className="lg:hidden mb-4 flex items-center justify-between">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setMobileMenuOpen(true)}
+          className="lg:hidden"
         >
-          <h1 className="text-4xl font-bold text-foreground font-[Poppins] mb-2">
-            Pomodoro Timer
-          </h1>
-          <p className="text-muted-foreground font-[Poppins]">
-            {config.message}
-          </p>
-        </motion.div>
+          <Menu className="h-6 w-6" />
+        </Button>
+        <h1 className="text-xl font-bold font-[Poppins]">
+          <span className="text-primary">Fiz</span>Tarefa
+        </h1>
+        <div className="w-10" />
+      </div>
+
+      <MobileMenu open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} />
+
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
+        {/* Sidebar - oculta no mobile */}
+        <div className="hidden lg:block">
+          <Sidebar />
+        </div>
+        
+        <main className="flex-1 w-full flex flex-col items-center justify-center gap-6 sm:gap-8 min-w-0">
+          <GuestModeBanner />
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center px-4"
+          >
+            <h1 className="text-3xl sm:text-4xl font-bold text-foreground font-[Poppins] mb-2">
+              Pomodoro Timer
+            </h1>
+            <p className="text-muted-foreground font-[Poppins] text-sm sm:text-base">
+              {config.message}
+            </p>
+          </motion.div>
 
         {/* Seletor de Fase */}
-        <div className="flex gap-2 p-1 bg-sidebar rounded-2xl">
+        <div className="flex gap-2 p-1 bg-sidebar rounded-2xl w-full max-w-md px-2">
           {(Object.keys(phaseConfig) as PomodoroPhase[]).map((p) => (
             <button
               key={p}
               onClick={() => selectPhase(p)}
               className={cn(
-                "px-6 py-3 rounded-xl font-medium font-[Poppins] transition-all",
+                "flex-1 px-3 sm:px-6 py-2 sm:py-3 rounded-xl font-medium font-[Poppins] transition-all text-xs sm:text-sm",
                 phase === p
                   ? "bg-primary text-primary-foreground shadow-lg"
                   : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50"
@@ -320,11 +347,11 @@ function TimerPage() {
 
           {/* Timer Display */}
           <motion.div
-            className="mt-8 text-center"
+            className="mt-6 sm:mt-8 text-center"
             animate={{ scale: isRunning ? [1, 1.02, 1] : 1 }}
             transition={{ duration: 1, repeat: Infinity }}
           >
-            <span className="text-7xl font-bold text-foreground font-mono tracking-wider">
+            <span className="text-5xl sm:text-6xl lg:text-7xl font-bold text-foreground font-mono tracking-wider">
               {formatTime(timeRemaining)}
             </span>
           </motion.div>
@@ -339,28 +366,28 @@ function TimerPage() {
         </div>
 
         {/* Controles */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4 w-full max-w-md justify-center">
           <Button
             variant="outline"
             size="icon"
             onClick={resetTimer}
-            className="w-14 h-14 rounded-2xl"
+            className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl"
           >
-            <RotateCcw className="w-6 h-6" />
+            <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6" />
           </Button>
 
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button
               onClick={toggleTimer}
               className={cn(
-                "w-20 h-20 rounded-full text-xl font-bold shadow-xl",
+                "w-16 h-16 sm:w-20 sm:h-20 rounded-full text-xl font-bold shadow-xl",
                 `bg-gradient-to-b ${config.color} hover:opacity-90`
               )}
             >
               {isRunning ? (
-                <Pause className="w-8 h-8" />
+                <Pause className="w-6 h-6 sm:w-8 sm:h-8" />
               ) : (
-                <Play className="w-8 h-8 ml-1" />
+                <Play className="w-6 h-6 sm:w-8 sm:h-8 ml-1" />
               )}
             </Button>
           </motion.div>
@@ -369,12 +396,12 @@ function TimerPage() {
             variant="outline"
             size="icon"
             onClick={() => setIsMuted(!isMuted)}
-            className="w-14 h-14 rounded-2xl"
+            className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl"
           >
             {isMuted ? (
-              <VolumeX className="w-6 h-6" />
+              <VolumeX className="w-5 h-5 sm:w-6 sm:h-6" />
             ) : (
-              <Volume2 className="w-6 h-6" />
+              <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" />
             )}
           </Button>
         </div>
@@ -416,6 +443,7 @@ function TimerPage() {
           💡 Dica: A cada 4 pomodoros de foco, você ganha uma pausa longa de 15 minutos!
         </motion.p>
       </main>
+      </div>
     </div>
   )
 }

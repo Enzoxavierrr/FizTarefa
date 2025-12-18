@@ -16,8 +16,8 @@ import {
 } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { motion, AnimatePresence } from "framer-motion"
-import { ChevronLeft, ChevronRight, Plus, Circle, X, Clock, GripVertical } from "lucide-react"
-import { Sidebar, GuestModeBanner } from "@/components/dashboard"
+import { ChevronLeft, ChevronRight, Plus, Circle, X, Clock, GripVertical, Menu } from "lucide-react"
+import { Sidebar, GuestModeBanner, MobileMenu } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useTasks } from "@/hooks/use-tasks"
@@ -382,6 +382,7 @@ function DaySchedule({ date, tasks, scheduledTasks, onScheduleTask, onUnschedule
 function CalendarPage() {
   const navigate = useNavigate()
   const { tasks, scheduleTask } = useTasks()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date())
   const [direction, setDirection] = useState(0)
@@ -469,28 +470,50 @@ function CalendarPage() {
   }, [tasks, currentMonth])
 
   return (
-    <div className="min-h-screen bg-background p-4 flex gap-6">
-      <Sidebar />
-      
-      <main className="flex-1 flex flex-col gap-6">
-        <GuestModeBanner />
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <motion.h1 
-              key={currentMonth.toISOString()}
-              initial={{ opacity: 0, x: direction * 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="text-4xl font-bold text-foreground font-[Poppins] capitalize"
-            >
-              {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
-            </motion.h1>
-            <p className="text-muted-foreground font-[Poppins] mt-1">
-              {monthStats.total} tarefas • {monthStats.completed} concluídas • {monthStats.pending} pendentes
-            </p>
-          </div>
+    <div className="min-h-screen bg-background p-2 sm:p-4">
+      {/* Mobile Menu Button */}
+      <div className="lg:hidden mb-4 flex items-center justify-between">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setMobileMenuOpen(true)}
+          className="lg:hidden"
+        >
+          <Menu className="h-6 w-6" />
+        </Button>
+        <h1 className="text-xl font-bold font-[Poppins]">
+          <span className="text-primary">Fiz</span>Tarefa
+        </h1>
+        <div className="w-10" />
+      </div>
 
-          <div className="flex items-center gap-3">
+      <MobileMenu open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} />
+
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
+        {/* Sidebar - oculta no mobile */}
+        <div className="hidden lg:block">
+          <Sidebar />
+        </div>
+        
+        <main className="flex-1 w-full flex flex-col gap-4 sm:gap-6 min-w-0">
+          <GuestModeBanner />
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <motion.h1 
+                key={currentMonth.toISOString()}
+                initial={{ opacity: 0, x: direction * 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground font-[Poppins] capitalize"
+              >
+                {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
+              </motion.h1>
+              <p className="text-muted-foreground font-[Poppins] mt-1 text-sm sm:text-base">
+                {monthStats.total} tarefas • {monthStats.completed} concluídas • {monthStats.pending} pendentes
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
             <Button
               variant="outline"
               onClick={goToToday}
@@ -529,13 +552,13 @@ function CalendarPage() {
         </div>
 
         {/* Calendário */}
-        <div className="flex-1 flex flex-col bg-sidebar/30 rounded-3xl p-4 overflow-hidden">
+        <div className="flex-1 flex flex-col bg-sidebar/30 rounded-2xl sm:rounded-3xl p-3 sm:p-4 overflow-hidden">
           {/* Cabeçalho dos dias da semana */}
-          <div className="grid grid-cols-7 gap-2 mb-2">
+          <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2">
             {WEEKDAYS.map((day) => (
               <div
                 key={day}
-                className="text-center text-sm font-semibold text-muted-foreground font-[Poppins] py-3"
+                className="text-center text-xs sm:text-sm font-semibold text-muted-foreground font-[Poppins] py-2 sm:py-3"
               >
                 {day}
               </div>
@@ -567,8 +590,8 @@ function CalendarPage() {
         </div>
       </main>
 
-      {/* Painel lateral - Tarefas do dia selecionado */}
-      <aside className="w-[320px] flex flex-col gap-4">
+      {/* Painel lateral - Tarefas do dia selecionado - oculto no mobile */}
+      <aside className="hidden xl:flex w-[320px] flex-col gap-4">
         {/* Data selecionada */}
         <div className="bg-sidebar rounded-3xl p-6">
           <div className="text-center">
@@ -713,6 +736,7 @@ function CalendarPage() {
           />
         )}
       </AnimatePresence>
+      </div>
     </div>
   )
 }

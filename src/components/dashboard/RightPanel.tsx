@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { Search, Bell, ChevronDown, Moon, Sun, Settings, Palette } from "lucide-react"
+import { Search, Bell, ChevronDown, Moon, Sun, Settings } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -52,7 +52,7 @@ function RightPanel() {
   const userName = getUserName()
   const userInitials = userName
     .split(" ")
-    .map((n) => n[0])
+    .map((n: string) => n[0])
     .join("")
     .toUpperCase()
     .slice(0, 2) || "U"
@@ -150,7 +150,7 @@ function RightPanel() {
     })
   }, [dayTasks])
   return (
-    <div className="w-[340px] flex flex-col gap-6">
+    <div className="w-[340px] flex flex-col gap-6 h-fit sticky top-4">
       {/* Header */}
       <div className="flex items-center gap-4">
         <div className="flex-1 relative">

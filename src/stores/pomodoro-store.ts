@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { PomodoroPhase } from '@/types'
 import { POMODORO_DURATIONS } from '@/types'
+import { useTimerSettingsStore } from './timer-settings-store'
 
 interface PomodoroStore {
   phase: PomodoroPhase
@@ -22,105 +23,124 @@ interface PomodoroStore {
   syncTime: () => void // Sincroniza tempo após recarregar
 }
 
+// Helper para obter durações (usa configurações personalizadas ou padrão)
+const getDurations = () => {
+  try {
+    const settings = useTimerSettingsStore.getState()
+    return settings.getDurations()
+  } catch {
+    // Fallback para valores padrão se o store não estiver disponível
+    return POMODORO_DURATIONS
+  }
+}
+
 export const usePomodoroStore = create<PomodoroStore>()(
   persist(
-    (set, get) => ({
-      phase: 'work',
-      timeRemaining: POMODORO_DURATIONS.work,
-      isRunning: false,
-      cyclesCompleted: 0,
-      currentTaskId: null,
-      lastTickTime: Date.now(),
-
-      start: () => set({ isRunning: true, lastTickTime: Date.now() }),
-      
-      pause: () => set({ isRunning: false }),
-      
-      reset: () => set({
+    (set, get) => {
+      const durations = getDurations()
+      return {
         phase: 'work',
-        timeRemaining: POMODORO_DURATIONS.work,
+        timeRemaining: durations.work,
         isRunning: false,
-      }),
-      
-      skip: () => {
-        const { phase, cyclesCompleted } = get()
+        cyclesCompleted: 0,
+        currentTaskId: null,
+        lastTickTime: Date.now(),
+
+        start: () => set({ isRunning: true, lastTickTime: Date.now() }),
         
-        if (phase === 'work') {
-          const newCycles = cyclesCompleted + 1
-          const isLongBreak = newCycles % 4 === 0
-          
-          set({
-            phase: isLongBreak ? 'long-break' : 'short-break',
-            timeRemaining: isLongBreak ? POMODORO_DURATIONS['long-break'] : POMODORO_DURATIONS['short-break'],
-            cyclesCompleted: newCycles,
-            isRunning: false,
-          })
-        } else {
+        pause: () => set({ isRunning: false }),
+        
+        reset: () => {
+          const durations = getDurations()
           set({
             phase: 'work',
-            timeRemaining: POMODORO_DURATIONS.work,
+            timeRemaining: durations.work,
             isRunning: false,
           })
-        }
-      },
-      
-      tick: () => {
-        const { timeRemaining, isRunning } = get()
+        },
         
-        if (!isRunning) return
-        
-        if (timeRemaining <= 1) {
-          get().completePhase()
-        } else {
-          set({ timeRemaining: timeRemaining - 1, lastTickTime: Date.now() })
-        }
-      },
-      
-      // Sincroniza o tempo após recarregar a página (calcula tempo passado)
-      syncTime: () => {
-        const { isRunning, lastTickTime, timeRemaining } = get()
-        
-        if (!isRunning || !lastTickTime) return
-        
-        const now = Date.now()
-        const elapsedSeconds = Math.floor((now - lastTickTime) / 1000)
-        
-        if (elapsedSeconds > 0) {
-          const newTimeRemaining = timeRemaining - elapsedSeconds
+        skip: () => {
+          const { phase, cyclesCompleted } = get()
+          const durations = getDurations()
           
-          if (newTimeRemaining <= 0) {
-            // O timer teria terminado enquanto estava fechado
+          if (phase === 'work') {
+            const newCycles = cyclesCompleted + 1
+            const isLongBreak = newCycles % 4 === 0
+            
+            set({
+              phase: isLongBreak ? 'long-break' : 'short-break',
+              timeRemaining: isLongBreak ? durations['long-break'] : durations['short-break'],
+              cyclesCompleted: newCycles,
+              isRunning: false,
+            })
+          } else {
+            set({
+              phase: 'work',
+              timeRemaining: durations.work,
+              isRunning: false,
+            })
+          }
+        },
+        
+        tick: () => {
+          const { timeRemaining, isRunning } = get()
+          
+          if (!isRunning) return
+          
+          if (timeRemaining <= 1) {
             get().completePhase()
           } else {
-            set({ timeRemaining: newTimeRemaining, lastTickTime: now })
+            set({ timeRemaining: timeRemaining - 1, lastTickTime: Date.now() })
           }
-        }
-      },
-      
-      setCurrentTask: (taskId) => set({ currentTaskId: taskId }),
-      
-      completePhase: () => {
-        const { phase, cyclesCompleted } = get()
+        },
         
-        if (phase === 'work') {
-          const newCycles = cyclesCompleted + 1
-          const isLongBreak = newCycles % 4 === 0
+        // Sincroniza o tempo após recarregar a página (calcula tempo passado)
+        syncTime: () => {
+          const { isRunning, lastTickTime, timeRemaining } = get()
           
-          set({
-            phase: isLongBreak ? 'long-break' : 'short-break',
-            timeRemaining: isLongBreak ? POMODORO_DURATIONS['long-break'] : POMODORO_DURATIONS['short-break'],
-            cyclesCompleted: newCycles,
-            isRunning: false,
-          })
-        } else {
-          set({
-            phase: 'work',
-            timeRemaining: POMODORO_DURATIONS.work,
-            isRunning: false,
-          })
-        }
-      },
-    }),
+          if (!isRunning || !lastTickTime) return
+          
+          const now = Date.now()
+          const elapsedSeconds = Math.floor((now - lastTickTime) / 1000)
+          
+          if (elapsedSeconds > 0) {
+            const newTimeRemaining = timeRemaining - elapsedSeconds
+            
+            if (newTimeRemaining <= 0) {
+              // O timer teria terminado enquanto estava fechado
+              get().completePhase()
+            } else {
+              set({ timeRemaining: newTimeRemaining, lastTickTime: now })
+            }
+          }
+        },
+        
+        setCurrentTask: (taskId) => set({ currentTaskId: taskId }),
+        
+        completePhase: () => {
+          const { phase, cyclesCompleted } = get()
+          const durations = getDurations()
+          
+          if (phase === 'work') {
+            const newCycles = cyclesCompleted + 1
+            const isLongBreak = newCycles % 4 === 0
+            
+            set({
+              phase: isLongBreak ? 'long-break' : 'short-break',
+              timeRemaining: isLongBreak ? durations['long-break'] : durations['short-break'],
+              cyclesCompleted: newCycles,
+              isRunning: false,
+            })
+          } else {
+            set({
+              phase: 'work',
+              timeRemaining: durations.work,
+              isRunning: false,
+            })
+          }
+        },
+      }
+    },
     {
       name: 'pomodoro-storage',
       partialize: (state) => ({

@@ -17,8 +17,9 @@ import {
   X,
   Pencil,
   Loader2,
+  Menu,
 } from "lucide-react"
-import { Sidebar, GuestModeBanner } from "@/components/dashboard"
+import { Sidebar, GuestModeBanner, MobileMenu } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Calendar } from "@/components/ui/calendar"
@@ -346,6 +347,7 @@ function EditTaskForm({ task, onSave, onCancel }: EditTaskFormProps) {
 function TasksPage() {
   const navigate = useNavigate()
   const { tasks, loading, toggleTaskComplete, deleteTask, updateTask } = useTasks()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [activeFilter, setActiveFilter] = useState<FilterType>("all")
   const [customDateRange, setCustomDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
@@ -472,30 +474,52 @@ function TasksPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 flex gap-6">
-      <Sidebar />
-      
-      <main className="flex-1 flex flex-col gap-6 max-w-5xl">
-        <GuestModeBanner />
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground font-[Poppins]">Task's</h1>
-            <p className="text-muted-foreground font-[Poppins] mt-1">
-              Gerencie todas as suas tarefas
-            </p>
-          </div>
-          <Button
-            onClick={() => navigate("/tasks/new")}
-            className="gap-2 font-[Poppins]"
-          >
-            <Plus className="w-4 h-4" />
-            Nova Tarefa
-          </Button>
-        </div>
+    <div className="min-h-screen bg-background p-2 sm:p-4">
+      {/* Mobile Menu Button */}
+      <div className="lg:hidden mb-4 flex items-center justify-between">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setMobileMenuOpen(true)}
+          className="lg:hidden"
+        >
+          <Menu className="h-6 w-6" />
+        </Button>
+        <h1 className="text-xl font-bold font-[Poppins]">
+          <span className="text-primary">Fiz</span>Tarefa
+        </h1>
+        <div className="w-10" />
+      </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-4 gap-4">
+      <MobileMenu open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} />
+
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
+        {/* Sidebar - oculta no mobile */}
+        <div className="hidden lg:block">
+          <Sidebar />
+        </div>
+        
+        <main className="flex-1 w-full flex flex-col gap-4 sm:gap-6 min-w-0 max-w-5xl">
+          <GuestModeBanner />
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground font-[Poppins]">Task's</h1>
+              <p className="text-muted-foreground font-[Poppins] mt-1 text-sm sm:text-base">
+                Gerencie todas as suas tarefas
+              </p>
+            </div>
+            <Button
+              onClick={() => navigate("/tasks/new")}
+              className="gap-2 font-[Poppins] w-full sm:w-auto"
+            >
+              <Plus className="w-4 h-4" />
+              Nova Tarefa
+            </Button>
+          </div>
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           <motion.div
             whileHover={{ scale: 1.02 }}
             className="bg-sidebar rounded-2xl p-4 cursor-pointer"
@@ -531,24 +555,25 @@ function TasksPage() {
         </div>
 
         {/* Search and Filters */}
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
           {/* Search */}
-          <div className="relative flex-1">
+          <div className="relative flex-1 min-w-0">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Buscar tarefas..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 font-[Poppins]"
+              className="pl-10 font-[Poppins] w-full"
             />
           </div>
 
           {/* Filter Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2 font-[Poppins]">
+              <Button variant="outline" className="gap-2 font-[Poppins] w-full sm:w-auto">
                 <Filter className="w-4 h-4" />
-                {filterLabels[activeFilter]}
+                <span className="hidden sm:inline">{filterLabels[activeFilter]}</span>
+                <span className="sm:hidden">Filtro</span>
                 <ChevronDown className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -741,6 +766,7 @@ function TasksPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   )
 }

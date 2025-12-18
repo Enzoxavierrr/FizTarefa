@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { motion } from "framer-motion"
+import { Menu } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { useTimerSettingsStore } from "@/stores/timer-settings-store"
+import { usePomodoroStore } from "@/stores/pomodoro-store"
 import {
   User,
   Bell,
@@ -19,8 +23,7 @@ import {
   Loader2,
   AlertTriangle,
 } from "lucide-react"
-import { Sidebar } from "@/components/dashboard"
-import { Button } from "@/components/ui/button"
+import { Sidebar, MobileMenu } from "@/components/dashboard"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
@@ -306,11 +309,69 @@ function AppearanceSection() {
 }
 
 function TimerSection() {
-  const [workDuration, setWorkDuration] = useState(25)
-  const [shortBreak, setShortBreak] = useState(5)
-  const [longBreak, setLongBreak] = useState(15)
-  const [autoStart, setAutoStart] = useState(false)
-  const [soundEnabled, setSoundEnabled] = useState(true)
+  const {
+    workDuration,
+    shortBreak,
+    longBreak,
+    autoStart,
+    soundEnabled,
+    setWorkDuration,
+    setShortBreak,
+    setLongBreak,
+    setAutoStart,
+    setSoundEnabled,
+  } = useTimerSettingsStore()
+  
+  // Aplicar mudanças de duração quando o usuário alterar (apenas se não estiver rodando)
+  useEffect(() => {
+    const durations = useTimerSettingsStore.getState().getDurations()
+    const { isRunning, phase: currentPhase } = usePomodoroStore.getState()
+    
+    // Se o timer não estiver rodando, atualiza o tempo restante para a fase atual
+    if (!isRunning) {
+      usePomodoroStore.setState({
+        timeRemaining: durations[currentPhase],
+      })
+    }
+  }, [workDuration, shortBreak, longBreak])
+  
+  const handleWorkDurationChange = (value: number) => {
+    setWorkDuration(value)
+    // Se estiver na fase de trabalho e não estiver rodando, atualiza o tempo
+    const { isRunning, phase: currentPhase } = usePomodoroStore.getState()
+    if (currentPhase === 'work' && !isRunning) {
+      usePomodoroStore.setState({ timeRemaining: value * 60 })
+      toast.success(`Tempo de foco alterado para ${value} minutos`)
+    }
+  }
+  
+  const handleShortBreakChange = (value: number) => {
+    setShortBreak(value)
+    const { isRunning, phase: currentPhase } = usePomodoroStore.getState()
+    if (currentPhase === 'short-break' && !isRunning) {
+      usePomodoroStore.setState({ timeRemaining: value * 60 })
+      toast.success(`Pausa curta alterada para ${value} minutos`)
+    }
+  }
+  
+  const handleLongBreakChange = (value: number) => {
+    setLongBreak(value)
+    const { isRunning, phase: currentPhase } = usePomodoroStore.getState()
+    if (currentPhase === 'long-break' && !isRunning) {
+      usePomodoroStore.setState({ timeRemaining: value * 60 })
+      toast.success(`Pausa longa alterada para ${value} minutos`)
+    }
+  }
+  
+  const handleAutoStartChange = (enabled: boolean) => {
+    setAutoStart(enabled)
+    toast.success(enabled ? "Início automático ativado" : "Início automático desativado")
+  }
+  
+  const handleSoundChange = (enabled: boolean) => {
+    setSoundEnabled(enabled)
+    toast.success(enabled ? "Sons ativados" : "Sons desativados")
+  }
 
   return (
     <motion.div
@@ -335,7 +396,7 @@ function TimerSection() {
         </div>
         <Slider
           value={[workDuration]}
-          onValueChange={(v) => setWorkDuration(v[0])}
+          onValueChange={(v) => handleWorkDurationChange(v[0])}
           min={15}
           max={60}
           step={5}
@@ -352,7 +413,7 @@ function TimerSection() {
         </div>
         <Slider
           value={[shortBreak]}
-          onValueChange={(v) => setShortBreak(v[0])}
+          onValueChange={(v) => handleShortBreakChange(v[0])}
           min={3}
           max={15}
           step={1}
@@ -369,7 +430,7 @@ function TimerSection() {
         </div>
         <Slider
           value={[longBreak]}
-          onValueChange={(v) => setLongBreak(v[0])}
+          onValueChange={(v) => handleLongBreakChange(v[0])}
           min={10}
           max={30}
           step={5}
@@ -384,7 +445,7 @@ function TimerSection() {
             Iniciar próximo timer automaticamente
           </p>
         </div>
-        <Switch checked={autoStart} onCheckedChange={setAutoStart} />
+        <Switch checked={autoStart} onCheckedChange={handleAutoStartChange} />
       </div>
 
       {/* Sound */}
@@ -402,7 +463,7 @@ function TimerSection() {
             </p>
           </div>
         </div>
-        <Switch checked={soundEnabled} onCheckedChange={setSoundEnabled} />
+        <Switch checked={soundEnabled} onCheckedChange={handleSoundChange} />
       </div>
     </motion.div>
   )
@@ -707,6 +768,7 @@ function HelpSection() {
 
 function SettingsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const sectionParam = searchParams.get("section") as SettingsSection | null
   const [activeSection, setActiveSection] = useState<SettingsSection>(
     sectionParam && ["profile", "appearance", "timer", "notifications", "privacy", "help"].includes(sectionParam)
@@ -754,33 +816,56 @@ function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 flex gap-6">
-      <Sidebar />
-      
-      <main className="flex-1 flex gap-6">
-        {/* Settings Menu */}
-        <div className="w-[320px] bg-sidebar rounded-3xl p-4 space-y-2 h-fit sticky top-4">
-          <h1 className="text-xl font-bold text-foreground font-[Poppins] px-4 py-2">
-            Configurações
-          </h1>
-          {sections.map((item) => (
-            <SettingsItem
-              key={item.section}
-              icon={item.icon}
-              label={item.label}
-              description={item.description}
-              section={item.section}
-              active={activeSection === item.section}
-              onClick={() => handleSectionChange(item.section)}
-            />
-          ))}
-        </div>
+    <div className="min-h-screen bg-background p-2 sm:p-4">
+      {/* Mobile Menu Button */}
+      <div className="lg:hidden mb-4 flex items-center justify-between">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setMobileMenuOpen(true)}
+          className="lg:hidden"
+        >
+          <Menu className="h-6 w-6" />
+        </Button>
+        <h1 className="text-xl font-bold font-[Poppins]">
+          <span className="text-primary">Fiz</span>Tarefa
+        </h1>
+        <div className="w-10" />
+      </div>
 
-        {/* Settings Content */}
-        <div className="flex-1 bg-sidebar rounded-3xl p-8 max-w-2xl">
-          {renderSection()}
+      <MobileMenu open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} />
+
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
+        {/* Sidebar - oculta no mobile */}
+        <div className="hidden lg:block">
+          <Sidebar />
         </div>
-      </main>
+        
+        <main className="flex-1 w-full flex flex-col lg:flex-row gap-4 lg:gap-6 min-w-0">
+          {/* Settings Menu */}
+          <div className="w-full lg:w-[320px] bg-sidebar rounded-3xl p-4 space-y-2 h-fit lg:sticky lg:top-4">
+            <h1 className="text-xl font-bold text-foreground font-[Poppins] px-4 py-2">
+              Configurações
+            </h1>
+            {sections.map((item) => (
+              <SettingsItem
+                key={item.section}
+                icon={item.icon}
+                label={item.label}
+                description={item.description}
+                section={item.section}
+                active={activeSection === item.section}
+                onClick={() => handleSectionChange(item.section)}
+              />
+            ))}
+          </div>
+
+          {/* Settings Content */}
+          <div className="flex-1 bg-sidebar rounded-3xl p-4 sm:p-6 lg:p-8 max-w-2xl w-full">
+            {renderSection()}
+          </div>
+        </main>
+      </div>
     </div>
   )
 }

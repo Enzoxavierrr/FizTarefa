@@ -2,7 +2,7 @@ import { Play, Pause, SkipForward, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui'
 import { usePomodoro } from '@/hooks/use-pomodoro'
 import { cn } from '@/lib/utils'
-import { POMODORO_DURATIONS } from '@/types'
+import { useTimerSettingsStore } from '@/stores/timer-settings-store'
 
 export function PomodoroTimer() {
   const {
@@ -19,8 +19,10 @@ export function PomodoroTimer() {
     getPhaseColor,
     currentTask,
   } = usePomodoro()
-
-  const totalTime = POMODORO_DURATIONS[phase]
+  
+  const getDurations = useTimerSettingsStore((state) => state.getDurations)
+  const durations = getDurations()
+  const totalTime = durations[phase]
   const progress = ((totalTime - timeRemaining) / totalTime) * 100
 
   return (

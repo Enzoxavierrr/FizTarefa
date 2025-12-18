@@ -132,9 +132,9 @@ export function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen flex bg-sidebar text-sidebar-foreground overflow-hidden">
+    <div className="min-h-screen flex flex-col lg:flex-row bg-sidebar text-sidebar-foreground overflow-hidden">
       {/* Left Side - Features with Dot Pattern */}
-      <div className="hidden lg:flex flex-1 relative p-12 flex-col justify-center">
+      <div className="hidden lg:flex flex-1 relative p-8 xl:p-12 flex-col justify-center">
         <DotPattern 
           className={cn(
             "absolute inset-0 [mask-image:radial-gradient(500px_circle_at_center,white,transparent)]",
@@ -153,10 +153,10 @@ export function AuthPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="text-5xl font-bold mb-4">
+            <h1 className="text-4xl xl:text-5xl font-bold mb-4 font-[Poppins]">
               <span className="text-primary">Fiz</span>Tarefa
             </h1>
-            <p className="text-xl text-sidebar-foreground/60 mb-12">
+            <p className="text-lg xl:text-xl text-sidebar-foreground/60 mb-8 xl:mb-12 font-[Poppins]">
               Transforme sua produtividade com foco e organização
             </p>
           </motion.div>
@@ -187,10 +187,10 @@ export function AuthPage() {
       </div>
 
       {/* Right Side - Form */}
-      <div className="flex-1 flex flex-col justify-center px-8 lg:px-16 xl:px-24 bg-background relative">
+      <div className="flex-1 flex flex-col justify-center px-4 sm:px-8 lg:px-16 xl:px-24 bg-background relative py-8 lg:py-0">
         {/* Glow effects */}
-        <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 left-1/4 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/4 right-1/4 w-32 sm:w-64 h-32 sm:h-64 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 left-1/4 w-32 sm:w-64 h-32 sm:h-64 bg-primary/5 rounded-full blur-3xl" />
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -199,8 +199,8 @@ export function AuthPage() {
           className="relative z-10 max-w-md w-full mx-auto"
         >
           {/* Mobile Logo */}
-          <div className="lg:hidden mb-8 text-center">
-            <h1 className="text-3xl font-bold">
+          <div className="lg:hidden mb-6 text-center">
+            <h1 className="text-2xl sm:text-3xl font-bold font-[Poppins]">
               <span className="text-primary">Fiz</span>Tarefa
             </h1>
           </div>

@@ -57,7 +57,7 @@ function Sidebar() {
   return (
     <motion.aside 
       className={cn(
-        "flex flex-col min-h-[calc(100vh-2rem)] sticky top-4 bg-sidebar text-sidebar-foreground rounded-3xl p-4 transition-all duration-300 relative",
+        "flex flex-col h-fit sticky top-4 bg-sidebar text-sidebar-foreground rounded-3xl p-4 transition-all duration-300",
         isCollapsed ? "w-[72px]" : "w-[220px]"
       )}
       layout

@@ -8,7 +8,8 @@ import {
   Zap,
   Loader2,
   CheckCircle2,
-  Calendar as CalendarIcon
+  Calendar as CalendarIcon,
+  Menu,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,7 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Slider } from '@/components/ui/slider'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { DatePicker } from '@/components/ui/date-picker'
-import { Sidebar, GuestModeBanner } from '@/components/dashboard'
+import { Sidebar, GuestModeBanner, MobileMenu } from '@/components/dashboard'
 import { useTasks } from '@/hooks/use-tasks'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -46,6 +47,7 @@ const timeOptions = [
 export function CreateTaskPage() {
   const navigate = useNavigate()
   const { createTask } = useTasks()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState<TaskFormData>({
     name: '',
@@ -92,33 +94,55 @@ export function CreateTaskPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 flex gap-6">
-      <Sidebar />
-      
-      <main className="flex-1 max-w-4xl">
-        <GuestModeBanner />
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+    <div className="min-h-screen bg-background p-2 sm:p-4">
+      {/* Mobile Menu Button */}
+      <div className="lg:hidden mb-4 flex items-center justify-between">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setMobileMenuOpen(true)}
+          className="lg:hidden"
         >
-          <Button
-            variant="ghost"
-            onClick={() => navigate(-1)}
-            className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
+          <Menu className="h-6 w-6" />
+        </Button>
+        <h1 className="text-xl font-bold font-[Poppins]">
+          <span className="text-primary">Fiz</span>Tarefa
+        </h1>
+        <div className="w-10" />
+      </div>
+
+      <MobileMenu open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} />
+
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
+        {/* Sidebar - oculta no mobile */}
+        <div className="hidden lg:block">
+          <Sidebar />
+        </div>
+        
+        <main className="flex-1 w-full max-w-4xl min-w-0">
+          <GuestModeBanner />
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 sm:mb-8"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
-          </Button>
-          
-          <h1 className="text-3xl font-bold text-foreground font-[Poppins]">
-            Criar Nova Tarefa
-          </h1>
-          <p className="text-muted-foreground mt-1 font-[Poppins]">
-            Preencha os detalhes da sua nova tarefa
-          </p>
-        </motion.div>
+            <Button
+              variant="ghost"
+              onClick={() => navigate(-1)}
+              className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar
+            </Button>
+            
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground font-[Poppins]">
+              Criar Nova Tarefa
+            </h1>
+            <p className="text-muted-foreground mt-1 font-[Poppins] text-sm sm:text-base">
+              Preencha os detalhes da sua nova tarefa
+            </p>
+          </motion.div>
 
         {/* Form */}
         <motion.div
@@ -319,6 +343,7 @@ export function CreateTaskPage() {
           </form>
         </motion.div>
       </main>
+      </div>
     </div>
   )
 }
