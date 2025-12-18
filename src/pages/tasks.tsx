@@ -18,7 +18,7 @@ import {
   Pencil,
   Loader2,
 } from "lucide-react"
-import { Sidebar } from "@/components/dashboard"
+import { Sidebar, GuestModeBanner } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Calendar } from "@/components/ui/calendar"
@@ -476,6 +476,7 @@ function TasksPage() {
       <Sidebar />
       
       <main className="flex-1 flex flex-col gap-6 max-w-5xl">
+        <GuestModeBanner />
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>

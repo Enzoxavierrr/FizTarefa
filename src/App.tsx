@@ -3,6 +3,7 @@ import { Toaster } from 'sonner'
 import { useAuth } from '@/hooks/use-auth'
 import { useTasks } from '@/hooks/use-tasks'
 import { usePomodoroStore } from '@/stores/pomodoro-store'
+import { useGuestStore } from '@/stores/guest-store'
 import { isSupabaseConfigured } from '@/lib/supabase'
 import { AuthPage } from '@/pages/auth'
 import { SetupPage } from '@/pages/setup'
@@ -17,14 +18,24 @@ import {
   StatsCard,
   StatisticsChart,
   RightPanel,
+  GuestModeBanner,
 } from "@/components/dashboard"
 import { SmoothCursor } from '@/components/ui/smooth-cursor'
 import { PomodoroBackground } from '@/components/pomodoro/pomodoro-background'
 import { Loader2 } from 'lucide-react'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth()
+  // Todos os hooks devem ser chamados antes de qualquer lógica condicional
+  const { isGuestMode: guestModeFromStore } = useGuestStore()
+  const { user, loading, isGuestMode } = useAuth()
+  
+  // Prioridade 1: Se estiver em modo guest, permite acesso imediatamente
+  if (guestModeFromStore || isGuestMode) {
+    return <>{children}</>
+  }
 
+  // Prioridade 2: Se estiver carregando, mostra loading
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -33,6 +44,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     )
   }
 
+  // Prioridade 3: Se não houver usuário, redireciona para login
   if (!user) {
     return <Navigate to="/auth" replace />
   }
@@ -55,6 +67,7 @@ function Dashboard() {
     <div className="min-h-screen bg-background p-4 flex gap-6">
       <Sidebar />
       <main className="flex-1 flex flex-col gap-6">
+        <GuestModeBanner />
         <WelcomeHeader userName={userName} />
         <div className="grid grid-cols-3 gap-4">
           <StatsCard value={hoursWorked.toString()} label="Horas Trabalhadas" />
@@ -70,23 +83,20 @@ function Dashboard() {
 
 function App() {
   return (
-    <div className="cursor-none">
-      <SmoothCursor />
-      <PomodoroBackground />
-      <BrowserRouter>
-        <Routes>
+    <ErrorBoundary>
+      <div className="cursor-none">
+        <SmoothCursor />
+        <PomodoroBackground />
+        <BrowserRouter>
+          <Routes>
           <Route path="/auth" element={<AuthPage />} />
           {!isSupabaseConfigured && <Route path="/setup" element={<SetupPage />} />}
           <Route
             path="/"
             element={
-              isSupabaseConfigured ? (
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              ) : (
-                <Navigate to="/auth" replace />
-              )
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
             }
           />
           <Route
@@ -129,10 +139,11 @@ function App() {
               </ProtectedRoute>
             }
           />
-        </Routes>
-        <Toaster position="bottom-right" richColors toastOptions={{ className: 'cursor-none' }} />
-      </BrowserRouter>
-    </div>
+          </Routes>
+          <Toaster position="bottom-right" richColors toastOptions={{ className: 'cursor-none' }} />
+        </BrowserRouter>
+      </div>
+    </ErrorBoundary>
   )
 }
 

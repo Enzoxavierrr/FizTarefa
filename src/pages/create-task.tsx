@@ -18,7 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Slider } from '@/components/ui/slider'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { DatePicker } from '@/components/ui/date-picker'
-import { Sidebar } from '@/components/dashboard'
+import { Sidebar, GuestModeBanner } from '@/components/dashboard'
 import { useTasks } from '@/hooks/use-tasks'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -96,6 +96,7 @@ export function CreateTaskPage() {
       <Sidebar />
       
       <main className="flex-1 max-w-4xl">
+        <GuestModeBanner />
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}

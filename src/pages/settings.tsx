@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import { motion } from "framer-motion"
 import {
   User,
@@ -150,17 +151,74 @@ function ProfileSection() {
 }
 
 function AppearanceSection() {
-  const [isDarkMode, setIsDarkMode] = useState(true)
-  const [accentColor, setAccentColor] = useState("yellow")
+  // Inicializar estado com valores do localStorage ou padrão
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window !== "undefined") {
+      const savedTheme = localStorage.getItem("theme")
+      if (savedTheme) {
+        return savedTheme === "dark"
+      }
+      return document.documentElement.classList.contains("dark")
+    }
+    return true
+  })
+  
+  const [accentColor, setAccentColor] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("accentColor") || "yellow"
+    }
+    return "yellow"
+  })
+
+  // Sincronizar com o tema atual quando o componente monta
+  useEffect(() => {
+    const currentTheme = document.documentElement.classList.contains("dark") ? "dark" : "light"
+    setIsDarkMode(currentTheme === "dark")
+  }, [])
 
   const colors = [
-    { name: "yellow", color: "#eab308" },
-    { name: "blue", color: "#3b82f6" },
-    { name: "green", color: "#22c55e" },
-    { name: "purple", color: "#8b5cf6" },
-    { name: "pink", color: "#ec4899" },
-    { name: "orange", color: "#f97316" },
+    { name: "yellow", color: "#eab308", hsl: "47.9 95.8% 53.1%" },
+    { name: "blue", color: "#3b82f6", hsl: "217.2 91.2% 59.8%" },
+    { name: "green", color: "#22c55e", hsl: "142.1 76.2% 36.3%" },
+    { name: "purple", color: "#8b5cf6", hsl: "258.3 89.5% 66.3%" },
+    { name: "pink", color: "#ec4899", hsl: "330.4 81.2% 60.4%" },
+    { name: "orange", color: "#f97316", hsl: "24.6 95% 53.1%" },
   ]
+
+  const handleThemeChange = (dark: boolean) => {
+    setIsDarkMode(dark)
+    if (dark) {
+      document.documentElement.classList.add("dark")
+      localStorage.setItem("theme", "dark")
+    } else {
+      document.documentElement.classList.remove("dark")
+      localStorage.setItem("theme", "light")
+    }
+  }
+
+  const handleColorChange = (colorName: string) => {
+    setAccentColor(colorName)
+    localStorage.setItem("accentColor", colorName)
+    
+    const selectedColor = colors.find(c => c.name === colorName)
+    if (selectedColor) {
+      // Atualizar variável CSS --primary
+      document.documentElement.style.setProperty("--primary", selectedColor.hsl)
+      
+      // Atualizar também --sidebar-primary para manter consistência
+      document.documentElement.style.setProperty("--sidebar-primary", selectedColor.hsl)
+    }
+  }
+
+  // Aplicar cor salva ao montar
+  useEffect(() => {
+    const savedColor = localStorage.getItem("accentColor") || "yellow"
+    const selectedColor = colors.find(c => c.name === savedColor)
+    if (selectedColor) {
+      document.documentElement.style.setProperty("--primary", selectedColor.hsl)
+      document.documentElement.style.setProperty("--sidebar-primary", selectedColor.hsl)
+    }
+  }, [])
 
   return (
     <motion.div
@@ -180,28 +238,42 @@ function AppearanceSection() {
         <Label className="font-[Poppins]">Tema</Label>
         <div className="flex gap-4">
           <button
-            onClick={() => setIsDarkMode(true)}
+            onClick={() => handleThemeChange(true)}
             className={cn(
-              "flex-1 p-4 rounded-2xl border-2 transition-all",
+              "flex-1 p-4 rounded-2xl border-2 transition-all cursor-pointer",
+              "flex flex-col items-center justify-center",
               isDarkMode 
-                ? "border-primary bg-primary/10" 
-                : "border-transparent bg-sidebar hover:bg-sidebar-accent/50"
+                ? "border-primary bg-primary/10 shadow-sm" 
+                : "border-border bg-card hover:bg-accent/50"
             )}
           >
-            <Moon className="w-8 h-8 mx-auto mb-2 text-foreground" />
-            <p className="font-medium font-[Poppins] text-foreground">Escuro</p>
+            <Moon className={cn(
+              "w-8 h-8 mb-2",
+              isDarkMode ? "text-primary" : "text-muted-foreground"
+            )} />
+            <p className={cn(
+              "font-medium font-[Poppins]",
+              isDarkMode ? "text-primary" : "text-muted-foreground"
+            )}>Escuro</p>
           </button>
           <button
-            onClick={() => setIsDarkMode(false)}
+            onClick={() => handleThemeChange(false)}
             className={cn(
-              "flex-1 p-4 rounded-2xl border-2 transition-all",
+              "flex-1 p-4 rounded-2xl border-2 transition-all cursor-pointer",
+              "flex flex-col items-center justify-center",
               !isDarkMode 
-                ? "border-primary bg-primary/10" 
-                : "border-transparent bg-sidebar hover:bg-sidebar-accent/50"
+                ? "border-primary bg-primary/10 shadow-sm" 
+                : "border-border bg-card hover:bg-accent/50"
             )}
           >
-            <Sun className="w-8 h-8 mx-auto mb-2 text-foreground" />
-            <p className="font-medium font-[Poppins] text-foreground">Claro</p>
+            <Sun className={cn(
+              "w-8 h-8 mb-2",
+              !isDarkMode ? "text-primary" : "text-muted-foreground"
+            )} />
+            <p className={cn(
+              "font-medium font-[Poppins]",
+              !isDarkMode ? "text-primary" : "text-muted-foreground"
+            )}>Claro</p>
           </button>
         </div>
       </div>
@@ -209,19 +281,25 @@ function AppearanceSection() {
       {/* Accent Color */}
       <div className="space-y-4">
         <Label className="font-[Poppins]">Cor de destaque</Label>
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
           {colors.map((c) => (
             <button
               key={c.name}
-              onClick={() => setAccentColor(c.name)}
+              onClick={() => handleColorChange(c.name)}
               className={cn(
-                "w-10 h-10 rounded-full transition-all",
-                accentColor === c.name && "ring-2 ring-offset-2 ring-offset-background"
+                "w-12 h-12 rounded-full transition-all cursor-pointer ring-2 ring-offset-2 ring-offset-background",
+                accentColor === c.name 
+                  ? "ring-primary scale-110" 
+                  : "ring-transparent hover:ring-primary/50 hover:scale-105"
               )}
               style={{ backgroundColor: c.color }}
+              aria-label={`Cor ${c.name}`}
             />
           ))}
         </div>
+        <p className="text-sm text-muted-foreground font-[Poppins]">
+          Selecione uma cor para personalizar o tema
+        </p>
       </div>
     </motion.div>
   )
@@ -395,6 +473,7 @@ function NotificationsSection() {
 
 function PrivacySection() {
   const { signOut, deleteAccount } = useAuth()
+  const navigate = useNavigate()
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [confirmText, setConfirmText] = useState("")
@@ -402,7 +481,7 @@ function PrivacySection() {
   const handleLogout = async () => {
     await signOut()
     toast.success("Você saiu da sua conta")
-    window.location.href = "/auth"
+    navigate("/auth", { replace: true })
   }
 
   const handleDeleteAccount = async () => {
@@ -426,7 +505,7 @@ function PrivacySection() {
       
       // Redireciona para a página de login após um breve delay
       setTimeout(() => {
-        window.location.href = "/auth"
+        navigate("/auth", { replace: true })
       }, 2000)
     } catch (error) {
       toast.error("Erro ao excluir conta")
@@ -627,7 +706,26 @@ function HelpSection() {
 }
 
 function SettingsPage() {
-  const [activeSection, setActiveSection] = useState<SettingsSection>("profile")
+  const [searchParams, setSearchParams] = useSearchParams()
+  const sectionParam = searchParams.get("section") as SettingsSection | null
+  const [activeSection, setActiveSection] = useState<SettingsSection>(
+    sectionParam && ["profile", "appearance", "timer", "notifications", "privacy", "help"].includes(sectionParam)
+      ? sectionParam
+      : "profile"
+  )
+
+  // Atualizar seção quando o query param mudar
+  useEffect(() => {
+    if (sectionParam && ["profile", "appearance", "timer", "notifications", "privacy", "help"].includes(sectionParam)) {
+      setActiveSection(sectionParam)
+    }
+  }, [sectionParam])
+
+  // Atualizar query param quando a seção mudar
+  const handleSectionChange = (section: SettingsSection) => {
+    setActiveSection(section)
+    setSearchParams({ section })
+  }
 
   const sections: { section: SettingsSection; icon: React.ElementType; label: string; description: string }[] = [
     { section: "profile", icon: User, label: "Perfil", description: "Suas informações" },
@@ -673,7 +771,7 @@ function SettingsPage() {
               description={item.description}
               section={item.section}
               active={activeSection === item.section}
-              onClick={() => setActiveSection(item.section)}
+              onClick={() => handleSectionChange(item.section)}
             />
           ))}
         </div>

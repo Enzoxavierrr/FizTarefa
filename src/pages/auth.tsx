@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { Navigate, useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '@/hooks/use-auth'
-import { Loader2, Sparkles, Zap, Target, Clock, AlertCircle } from 'lucide-react'
+import { useGuestStore } from '@/stores/guest-store'
+import { Loader2, Sparkles, Zap, Target, Clock, AlertCircle, Eye } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -37,7 +38,9 @@ const features = [
 ]
 
 export function AuthPage() {
+  // Todos os hooks devem ser chamados antes de qualquer lógica condicional
   const { user, loading, signIn, signUp } = useAuth()
+  const { enableGuestMode, isGuestMode } = useGuestStore()
   const navigate = useNavigate()
   const [mode, setMode] = useState<AuthMode>('login')
   const [email, setEmail] = useState('')
@@ -79,7 +82,8 @@ export function AuthPage() {
     )
   }
 
-  if (user) {
+  // Se estiver autenticado ou em modo guest, redireciona para dashboard
+  if (user || isGuestMode) {
     return <Navigate to="/" replace />
   }
 
@@ -116,6 +120,15 @@ export function AuthPage() {
 
   const toggleMode = () => {
     setMode(mode === 'login' ? 'register' : 'login')
+  }
+
+  const handleGuestMode = () => {
+    enableGuestMode()
+    // Pequeno delay para garantir que o estado seja atualizado
+    setTimeout(() => {
+      toast.success('Modo demonstração ativado! Seus dados não serão salvos.')
+      navigate('/', { replace: true })
+    }, 100)
   }
 
   return (
@@ -305,6 +318,22 @@ export function AuthPage() {
               {mode === 'login' ? 'Criar conta' : 'Entrar'}
             </button>
           </p>
+
+          {/* Guest Mode Button */}
+          <div className="mt-6 space-y-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={handleGuestMode}
+              className="w-full h-12 text-base font-medium bg-primary/5 hover:bg-primary/10 border border-primary/20 hover:border-primary/30 transition-all text-foreground"
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              Navegar sem criar conta
+            </Button>
+            <p className="text-xs text-muted-foreground text-center">
+              Explore o app em modo demonstração
+            </p>
+          </div>
 
           {/* Features badges - Mobile */}
           <div className="lg:hidden mt-12 flex flex-wrap gap-2 justify-center">

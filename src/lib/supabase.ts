@@ -6,15 +6,29 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 const isMissingEnv = !supabaseUrl || !supabaseAnonKey
 
-export const supabase = isMissingEnv
-  ? (null as any)
-  : createClient<Database>(supabaseUrl, supabaseAnonKey, {
+// Valida se a URL do Supabase é válida
+const isValidUrl = (url: string | undefined): boolean => {
+  if (!url) return false
+  try {
+    const parsed = new URL(url)
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:'
+  } catch {
+    return false
+  }
+}
+
+const isValidConfig = !isMissingEnv && isValidUrl(supabaseUrl)
+
+export const supabase = isValidConfig
+  ? createClient<Database>(supabaseUrl!, supabaseAnonKey!, {
       auth: {
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: false, // Desabilitar detecção automática de sessão na URL
+        storage: typeof window !== 'undefined' ? window.localStorage : undefined,
       },
     })
+  : (null as any)
 
-export const isSupabaseConfigured = !isMissingEnv
+export const isSupabaseConfigured = isValidConfig
 

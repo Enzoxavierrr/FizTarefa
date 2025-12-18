@@ -6,4 +6,5 @@ export { Calendar } from "./Calendar"
 export { TaskCard } from "./TaskCard"
 export { CreateTaskCard } from "./CreateTaskCard"
 export { RightPanel } from "./RightPanel"
+export { GuestModeBanner } from "./GuestModeBanner"
 

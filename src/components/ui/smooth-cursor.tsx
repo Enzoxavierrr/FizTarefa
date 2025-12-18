@@ -88,14 +88,19 @@ export function SmoothCursor({
   },
 }: SmoothCursorProps) {
   const [, setIsMoving] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
   const lastMousePos = useRef<Position>({ x: 0, y: 0 })
   const velocity = useRef<Position>({ x: 0, y: 0 })
   const lastUpdateTime = useRef(Date.now())
   const previousAngle = useRef(0)
   const accumulatedRotation = useRef(0)
 
-  const cursorX = useSpring(0, springConfig)
-  const cursorY = useSpring(0, springConfig)
+  // Inicializar na posição do mouse se disponível
+  const initialX = typeof window !== 'undefined' ? window.innerWidth / 2 : 0
+  const initialY = typeof window !== 'undefined' ? window.innerHeight / 2 : 0
+
+  const cursorX = useSpring(initialX, springConfig)
+  const cursorY = useSpring(initialY, springConfig)
   const rotation = useSpring(0, {
     ...springConfig,
     damping: 60,
@@ -108,6 +113,8 @@ export function SmoothCursor({
   })
 
   useEffect(() => {
+    setIsMounted(true)
+    
     const updateVelocity = (currentPos: Position) => {
       const currentTime = Date.now()
       const deltaTime = currentTime - lastUpdateTime.current
@@ -168,15 +175,29 @@ export function SmoothCursor({
       })
     }
 
+    // Inicializar posição do cursor na posição atual do mouse
+    const handleInitialMouseMove = (e: MouseEvent) => {
+      cursorX.set(e.clientX)
+      cursorY.set(e.clientY)
+      lastMousePos.current = { x: e.clientX, y: e.clientY }
+      window.removeEventListener("mousemove", handleInitialMouseMove)
+    }
+
     document.body.style.cursor = "none"
+    window.addEventListener("mousemove", handleInitialMouseMove)
     window.addEventListener("mousemove", throttledMouseMove)
 
     return () => {
+      window.removeEventListener("mousemove", handleInitialMouseMove)
       window.removeEventListener("mousemove", throttledMouseMove)
       document.body.style.cursor = "auto"
       if (rafId) cancelAnimationFrame(rafId)
     }
   }, [cursorX, cursorY, rotation, scale])
+
+  if (!isMounted) {
+    return null
+  }
 
   return (
     <motion.div
@@ -192,8 +213,8 @@ export function SmoothCursor({
         pointerEvents: "none",
         willChange: "transform",
       }}
-      initial={{ scale: 0 }}
-      animate={{ scale: 1 }}
+      initial={{ opacity: 0, scale: 0 }}
+      animate={{ opacity: 1, scale: 1 }}
       transition={{
         type: "spring",
         stiffness: 400,

@@ -17,7 +17,7 @@ import {
 import { ptBR } from "date-fns/locale"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronLeft, ChevronRight, Plus, Circle, X, Clock, GripVertical } from "lucide-react"
-import { Sidebar } from "@/components/dashboard"
+import { Sidebar, GuestModeBanner } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useTasks } from "@/hooks/use-tasks"
@@ -473,6 +473,7 @@ function CalendarPage() {
       <Sidebar />
       
       <main className="flex-1 flex flex-col gap-6">
+        <GuestModeBanner />
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>

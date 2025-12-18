@@ -1,14 +1,27 @@
 import { useEffect, useState } from 'react'
 import type { User, Session } from '@supabase/supabase-js'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
+import { useGuestStore, type GuestUser } from '@/stores/guest-store'
+
+// Tipo unificado para usuário (pode ser User do Supabase ou GuestUser)
+type AuthUser = User | (GuestUser & { user_metadata?: { name?: string } }) | null
 
 export function useAuth() {
+  const { isGuestMode, guestUser, disableGuestMode } = useGuestStore()
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!isSupabaseConfigured) {
+    // Se estiver em modo guest, não precisa verificar Supabase
+    if (isGuestMode) {
+      setLoading(false)
+      setUser(null) // Limpa usuário do Supabase quando em modo guest
+      setSession(null)
+      return
+    }
+
+    if (!isSupabaseConfigured || !supabase) {
       setLoading(false)
       return
     }
@@ -27,10 +40,17 @@ export function useAuth() {
       setLoading(false)
     })
 
-    return () => subscription.unsubscribe()
-  }, [])
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe()
+      }
+    }
+  }, [isGuestMode])
 
   const signUp = async (email: string, password: string, name?: string) => {
+    if (!isSupabaseConfigured || !supabase) {
+      return { data: null, error: new Error('Supabase não configurado') }
+    }
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -44,6 +64,9 @@ export function useAuth() {
   }
 
   const signIn = async (email: string, password: string) => {
+    if (!isSupabaseConfigured || !supabase) {
+      return { data: null, error: new Error('Supabase não configurado') }
+    }
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -52,30 +75,77 @@ export function useAuth() {
   }
 
   const signOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut({ scope: 'local' })
-      // Limpa o estado local mesmo se houver erro
-      setUser(null)
-      setSession(null)
-      return { error }
-    } catch (err) {
-      // Limpa o estado local em caso de exceção
-      setUser(null)
-      setSession(null)
-      return { error: err as Error }
+    // Se estiver em modo guest, apenas desabilita o modo guest
+    if (isGuestMode) {
+      disableGuestMode()
+      return { error: null }
     }
+
+    // Sempre limpa o estado local primeiro
+    setUser(null)
+    setSession(null)
+    
+    // Limpa o localStorage para remover qualquer sessão armazenada
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const keys = Object.keys(localStorage)
+        keys.forEach(key => {
+          if (key.includes('supabase') || key.includes('auth')) {
+            localStorage.removeItem(key)
+          }
+        })
+      }
+    } catch (err) {
+      // Ignora erros ao limpar localStorage
+    }
+    
+    // Tenta fazer logout no Supabase de forma completamente assíncrona
+    // Não espera a resposta para evitar bloqueios ou erros
+    if (isSupabaseConfigured && supabase && typeof supabase.auth !== 'undefined') {
+      // Executa de forma assíncrona sem bloquear
+      setTimeout(() => {
+        try {
+          supabase.auth.signOut({ scope: 'local' }).catch(() => {
+            // Silenciosamente ignora qualquer erro
+          })
+        } catch {
+          // Ignora qualquer exceção
+        }
+      }, 0)
+    }
+    
+    return { error: null }
   }
 
   // Pegar o nome do usuário dos metadados ou do email
   const getUserName = () => {
+    if (isGuestMode && guestUser) {
+      return guestUser.name
+    }
     if (!user) return 'Usuário'
     return user.user_metadata?.name || user.email?.split('@')[0] || 'Usuário'
+  }
+
+  // Retorna o usuário atual (pode ser User do Supabase ou GuestUser)
+  const currentUser = (): AuthUser => {
+    if (isGuestMode && guestUser) {
+      // Retorna um objeto compatível com User do Supabase
+      return {
+        ...guestUser,
+        user_metadata: { name: guestUser.name },
+      } as any
+    }
+    return user
   }
 
   // Deletar conta e todos os dados do usuário
   const deleteAccount = async () => {
     if (!user) {
       return { error: new Error('Usuário não autenticado') }
+    }
+
+    if (!isSupabaseConfigured || !supabase) {
+      return { error: new Error('Supabase não configurado') }
     }
 
     try {
@@ -101,15 +171,36 @@ export function useAuth() {
         return { error: listsError }
       }
 
-      // 3. Fazer logout (a conta do usuário no Supabase Auth não pode ser deletada
-      // diretamente pelo cliente sem permissões de admin. Os dados foram deletados,
-      // e o usuário pode solicitar a exclusão da conta através do painel do Supabase
-      // ou podemos criar uma função edge para isso no futuro)
-      await supabase.auth.signOut({ scope: 'local' })
-      
-      // Limpa o estado local
+      // 3. Limpa o estado local primeiro
       setUser(null)
       setSession(null)
+      
+      // Limpa o localStorage
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          const keys = Object.keys(localStorage)
+          keys.forEach(key => {
+            if (key.includes('supabase') || key.includes('auth')) {
+              localStorage.removeItem(key)
+            }
+          })
+        }
+      } catch (err) {
+        // Ignora erros ao limpar localStorage
+      }
+      
+      // Tenta fazer logout no Supabase de forma assíncrona (não bloqueia)
+      if (isSupabaseConfigured && supabase && typeof supabase.auth !== 'undefined') {
+        setTimeout(() => {
+          try {
+            supabase.auth.signOut({ scope: 'local' }).catch(() => {
+              // Silenciosamente ignora qualquer erro
+            })
+          } catch {
+            // Ignora qualquer exceção
+          }
+        }, 0)
+      }
 
       return { error: null }
     } catch (err) {
@@ -119,7 +210,7 @@ export function useAuth() {
   }
 
   return {
-    user,
+    user: currentUser(),
     session,
     loading,
     signUp,
@@ -127,5 +218,6 @@ export function useAuth() {
     signOut,
     getUserName,
     deleteAccount,
+    isGuestMode: isGuestMode || false,
   }
 }

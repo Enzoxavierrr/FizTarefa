@@ -39,10 +39,11 @@ function Sidebar() {
     try {
       await signOut()
       toast.success("Você saiu da sua conta")
-      window.location.href = "/auth"
     } catch (err) {
-      console.error('[Sidebar] signOut error:', err)
-      window.location.href = "/auth"
+      // Ignora erros - o logout sempre funciona
+    } finally {
+      // Sempre redireciona, independente de erros
+      navigate("/auth", { replace: true })
     }
   }
 

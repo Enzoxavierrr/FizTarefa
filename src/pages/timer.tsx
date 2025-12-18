@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Play, Pause, RotateCcw, Coffee, Brain, Sparkles, Volume2, VolumeX } from "lucide-react"
-import { Sidebar } from "@/components/dashboard"
+import { Sidebar, GuestModeBanner } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { PomodoroPhase } from "@/types"
@@ -263,6 +263,7 @@ function TimerPage() {
       <Sidebar />
       
       <main className="flex-1 flex flex-col items-center justify-center gap-8">
+        <GuestModeBanner />
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
